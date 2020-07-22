@@ -1,10 +1,23 @@
 
+abstract  class Install {
+  String get installId;
+  String get applicationId;
+  List<String> get features;
+}
+
+enum ConnectStatus {
+  SUCCESSFUL_CONNECT,
+  NEED_TO_VERIFY_EMAIL,
+  INVALID_EMAIL,
+  NOT_CONNECTED
+}
+
 abstract class ConnectResult {
   ConnectStatus get status;
 }
 
 abstract class Token {
-  String get feature_id ;
+  String get featureId ;
   String get token;
 }
 
@@ -15,23 +28,11 @@ abstract class SyncResult {
   String get permanentLink;
 }
 
-abstract  class Install {
-  String get install_id;
-  String get application_id;
-  List<String> get features;
-}
 
 enum SyncStatus {
   SUCCESSFUL_SYNC,
   NOT_CONNECTED,
   ACTIVATED_TOKEN
-}
-
-enum ConnectStatus {
-  SUCCESSFUL_CONNECT,
-  NEED_TO_VERIFY_EMAIL,
-  INVALID_EMAIL,
-  NOT_CONNECTED
 }
 
 abstract class PremiumPayAPI {

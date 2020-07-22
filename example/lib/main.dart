@@ -612,13 +612,13 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
 
                                           for (int i = 0; i < syncResult.tokens.length; i++) {
 
-                                            if (widget.data.feature_1.feature_id == syncResult.tokens[i].feature_id) {
+                                            if (widget.data.feature_1.feature_id == syncResult.tokens[i].featureId) {
 
                                               _resetFeatureActivation(widget.data.feature_1);
                                               _resetToken(widget.data.feature_1, syncResult.tokens[i].token);
                                               widget.data.token_controller_1.text = widget.data.feature_1.token;
                                             }
-                                            if (widget.data.feature_2.feature_id == syncResult.tokens[i].feature_id) {
+                                            if (widget.data.feature_2.feature_id == syncResult.tokens[i].featureId) {
 
                                               await _resetFeatureActivation(widget.data.feature_2);
                                               await _resetToken(widget.data.feature_2, syncResult.tokens[i].token);

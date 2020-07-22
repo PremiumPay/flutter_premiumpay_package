@@ -16,10 +16,10 @@ class ConnectResultImpl implements ConnectResult {
 }
 
 class TokenImpl implements Token {
-  final String feature_id;
+  final String featureId;
   final String token;
 
-  TokenImpl._internal(this.feature_id, this.token);
+  TokenImpl._internal(this.featureId, this.token);
 }
 
 class SyncResultImpl  implements SyncResult {
@@ -32,11 +32,11 @@ class SyncResultImpl  implements SyncResult {
 }
 
 class InstallImpl implements Install  {
-  final String install_id;
-  final String application_id;
+  final String installId;
+  final String applicationId;
   final List<String> features;
 
-  InstallImpl._internal(this.install_id, this.application_id, this.features);
+  InstallImpl._internal(this.installId, this.applicationId, this.features);
 }
 
 class  _PremiumPayAPI implements PremiumPayAPI {
@@ -56,7 +56,7 @@ class  _PremiumPayAPI implements PremiumPayAPI {
   Future<ConnectResult> connectRequest(Install install, String email, { bool resendEmail = false, bool acceptPromoOffers = false, String lang = 'en'}) async {
     String connectUrl = "https://api.premiumpay.site/connect";
     String jsonBody =
-        '{ "email": "$email", "install_id": "${install.install_id}", "application_id":"${install.application_id}" , "resend_email": $resendEmail , "features": "${install.features}", "accept_promo_offers": "$acceptPromoOffers","from":"application"}';
+        '{ "email": "$email", "install_id": "${install.installId}", "application_id":"${install.applicationId}" , "resend_email": $resendEmail , "features": "${install.features}", "accept_promo_offers": "$acceptPromoOffers","from":"application"}';
     Map<String, String> headers = {"Content-type": "application/json"};
     ConnectStatus status;
     http.Response response =
@@ -120,7 +120,7 @@ class  _PremiumPayAPI implements PremiumPayAPI {
   }
 
   bool verifyReceivedToken(String installId, Token token) {
-    return verifyToken(installId, token.feature_id, token.token);
+    return verifyToken(installId, token.featureId, token.token);
   }
 
   @override
@@ -129,7 +129,6 @@ class  _PremiumPayAPI implements PremiumPayAPI {
   }
 
 }
-
 
 class _PremiumPayCrypto {
 
