@@ -211,64 +211,60 @@ class _DemoAccessPageState extends State<DemoAccessPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: <Widget>[
-                          Text(
-                            data.feature_1.feature_name + " feature: ",
-                            style: TextStyle(
-                                color: Colors.blue[900], fontSize: 18),
-                          ),
-                          data.feature_1.activated
-                              ? Icon(
+                          Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: <Widget>[
+                                Container(
+                                  width: MediaQuery.of(context).size.width * 0.6,
+                                  child:
+                                  Text(
+                                  data.feature_1.feature_name + " feature: ",
+                                  softWrap: true,
+                                  maxLines: 3,
+                                  style: TextStyle(
+                                      color: Colors.blue[900], fontSize: 18),
+                                )),
+                                data.feature_1.activated
+                                    ? Icon(
                                   Icons.check_circle,
                                   color: Colors.green,
                                   size: 30,
                                 )
-                              : Text("need activation",
-                                  style: TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 15,
-                                      fontStyle: FontStyle.italic))
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: <Widget>[
-                          FlatButton(
-                            child: Text(
-                              'activate',
-                              style: TextStyle(
-                                  color: Colors.blue[900],
-                                  fontSize: 20,
-                                  fontStyle: FontStyle.italic,
-                                  decoration: TextDecoration.underline),
-                            ),
-                            onPressed: () async {
-                             final dataBack = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => DemoConnectPage(
-                                        notifyParent: refresh,
-                                        data:data
-                                  )),
-                              ) as Data;
+                                    : FlatButton(
+                                  child: Text(
+                                    'activate',
+                                    style: TextStyle(
+                                        color: Colors.blue[900],
+                                        fontSize: 20,
+                                        fontStyle: FontStyle.italic,
+                                        decoration: TextDecoration.underline),
+                                  ),
+                                  onPressed: () async {
+                                    final dataBack = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => DemoConnectPage(
+                                              notifyParent: refresh,
+                                              data:data
+                                          )),
+                                    ) as Data;
 
-                             data.application_id = dataBack.application_id;
-                             data.install_id = dataBack.install_id;
-                             data.feature_1 = dataBack.feature_1;
-                             data.feature_2 = dataBack.feature_2;
-                             data.features = dataBack.features;
-                             data.email = dataBack.email;
-                             data.connected = dataBack.connected;
-                             data.token_controller_1 = dataBack.token_controller_1;
-                             data.token_controller_2 = dataBack.token_controller_2;
-                            },
-                          ),
-                        ],
-                      ),
+                                    data.application_id = dataBack.application_id;
+                                    data.install_id = dataBack.install_id;
+                                    data.feature_1 = dataBack.feature_1;
+                                    data.feature_2 = dataBack.feature_2;
+                                    data.features = dataBack.features;
+                                    data.email = dataBack.email;
+                                    data.connected = dataBack.connected;
+                                    data.token_controller_1 = dataBack.token_controller_1;
+                                    data.token_controller_2 = dataBack.token_controller_2;
+                                  },
+                                )
+                              ],
+                            )
+
+                      ,
                       SizedBox(
                         height: 60,
                       ),
@@ -276,27 +272,22 @@ class _DemoAccessPageState extends State<DemoAccessPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
-                          Text(
+                          Container(
+                            width: MediaQuery.of(context).size.width * 0.6,
+                          child: Text(
                             data.feature_2.feature_name + " feature: ",
+                            softWrap: true,
+                            maxLines: 3,
                             style: TextStyle(
                                 color: Colors.blue[900], fontSize: 18),
-                          ),
+                          )),
                           data.feature_2.activated
                               ? Icon(
                                   Icons.check_circle,
                                   color: Colors.green,
                                   size: 30,
                                 )
-                              : Text("need activation",
-                                  style: TextStyle(
-                                      color: Colors.grey, fontSize: 15))
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: <Widget>[
-                          FlatButton(
+                              : FlatButton(
                             child: Text(
                               'activate',
                               style: TextStyle(
@@ -306,28 +297,60 @@ class _DemoAccessPageState extends State<DemoAccessPage> {
                                   decoration: TextDecoration.underline),
                             ),
                             onPressed: () async {
-                             final dataBack = await Navigator.push(
+                              final dataBack = await Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) => DemoConnectPage(
-                                          notifyParent: refresh,
-                                          data : data
-                                        )),
+                                        notifyParent: refresh,
+                                        data : data
+                                    )),
                               ) as Data;
 
-                             data.application_id = dataBack.application_id;
+                              data.application_id = dataBack.application_id;
                               data.install_id = dataBack.install_id;
                               data.feature_1 = dataBack.feature_1;
                               data.feature_2 = dataBack.feature_2;
-                               data.features = dataBack.features;
-                               data.email = dataBack.email;
-                               data.connected = dataBack.connected;
-                               data.token_controller_1 = dataBack.token_controller_1;
+                              data.features = dataBack.features;
+                              data.email = dataBack.email;
+                              data.connected = dataBack.connected;
+                              data.token_controller_1 = dataBack.token_controller_1;
                               data.token_controller_2 = dataBack.token_controller_2;
                             },
-                          ),
+                          )
                         ],
-                      )
+                      ),
+                          SizedBox(height: 40,),
+                          FlatButton(
+                            child: Text(
+                              'access to my account',
+                              style: TextStyle(
+                                  color: Colors.blue[900],
+                                  fontSize: 17,
+                                  fontStyle: FontStyle.italic,
+                                  decoration: TextDecoration.underline),
+                            ),
+                            onPressed: () async {
+                              final dataBack = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => DemoConnectPage(
+                                        notifyParent: refresh,
+                                        data : data
+                                    )),
+                              ) as Data;
+
+                              data.application_id = dataBack.application_id;
+                              data.install_id = dataBack.install_id;
+                              data.feature_1 = dataBack.feature_1;
+                              data.feature_2 = dataBack.feature_2;
+                              data.features = dataBack.features;
+                              data.email = dataBack.email;
+                              data.connected = dataBack.connected;
+                              data.token_controller_1 = dataBack.token_controller_1;
+                              data.token_controller_2 = dataBack.token_controller_2;
+                            },
+                          )
+
                     ]));
               } else {
                 return Center(child:Text("Loading...",style: TextStyle( color: Colors.blue[900], fontSize: 18),) ,);
@@ -1151,7 +1174,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                       readOnly: widget.data.feature_2.activated,
                       onEditingComplete: () async {
                         bool verified =
-                        widget.data.token_controller_2.text.length == 96
+                        checkTokenValidFormat(widget.data.token_controller_2.text)
                             ? tokenVerification(
                             widget.data.feature_2.feature_id +
                                 '@' +

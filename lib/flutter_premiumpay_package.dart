@@ -39,6 +39,17 @@ class Sync {
   final String install_id;
   Sync(this.install_id);
 
+  static SyncStatus decode(String str){
+
+    switch(str){
+      case "NOT_CONNECTED": return SyncStatus.NOT_CONNECTED;
+      case "SUCCESSFUL_SYNC": return SyncStatus.SUCCESSFUL_SYNC;
+      case "ACTIVATED_TOKEN": return SyncStatus.ACTIVATED_TOKEN;
+      default: throw Exception("incorrect SyncStatus value: $str");
+    }
+
+  }
+
   Future<SyncResult> syncRequest () async
   {
 
@@ -47,18 +58,14 @@ class Sync {
     String url ="https://api.premiumpay.site/sync/?install_id=$installIdEncoded";
     http.Response response = await http.get(url, headers: headers);
     dynamic responseBody = jsonDecode(response.body);
-    SyncStatus status;
     List<Token> list =  List<Token>();
 
-    if(responseBody["result"]=="NOT_CONNECTED"){
-      status=SyncStatus.NOT_CONNECTED;
-    }
-    if(responseBody["result"]=="SUCCESSFUL_SYNC"){
-      status=SyncStatus.SUCCESSFUL_SYNC;
-    }
-    if(responseBody["result"]=="ACTIVATED_TOKEN"){
-      status=SyncStatus.ACTIVATED_TOKEN;
-      for(int i=0;i<responseBody["number_of_token"];i++){
+
+    SyncStatus status=decode(responseBody["result"]);
+
+    if( status == SyncStatus.ACTIVATED_TOKEN){
+      int number_of_token = responseBody["number_of_token"];
+      for(int i=0; i< number_of_token ;i++){
         Token token= Token(responseBody["feature_${i+1}"],responseBody["token_${i+1}"]);
         list.add(token);
       }
@@ -142,6 +149,12 @@ class Install{
 
 pointy.ECCurve_secp256k1 secp256k1 = pointy.ECCurve_secp256k1();
 
+
+/// fast local test
+bool checkTokenValidFormat(String token){
+
+     return token.length == 96;
+}
 
 bool tokenVerification(String msg,String token){
   var signatureToken=conv.base64Decode(token);
