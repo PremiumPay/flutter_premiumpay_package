@@ -44,7 +44,8 @@ class InstallImpl implements Install  {
 
   @override
   String toString() {
-    return json.encode({ "installId" : installId,
+    return json.encode({
+      "installId" : installId,
       "applicationId" : applicationId,
       "features" : features
     });
@@ -102,7 +103,7 @@ class  _PremiumPayAPI implements PremiumPayAPI {
     SyncStatus status = _decode(responseBody["result"]);
 
     if (status == SyncStatus.ACTIVATED_TOKEN) {
-      //FAF: Il faut renvoyer une liste ici en json!
+      //TODO FAF: You need to return directly a json list instead!
       int number_of_token = responseBody["number_of_token"];
       for (int i = 0; i < number_of_token; i++) {
         Token token = TokenImpl._internal(responseBody["feature_${i + 1}"], responseBody["token_${i + 1}"]);
@@ -133,6 +134,7 @@ class  _PremiumPayAPI implements PremiumPayAPI {
     }
   }
 
+  @override
   bool verifyReceivedToken(String installId, Token token) {
     return verifyToken(installId, token.featureId, token.token);
   }

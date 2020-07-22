@@ -31,5 +31,7 @@ void main() {
     Install install = premiumPayAPI.createInstall(installId, applicationId, features);
     ConnectResult connectResult = await premiumPayAPI.connectRequest(install, "frank.afriat@gmail.com");
     print('connectResult = $connectResult');
+    //TODO FAF: Waiting here a result like: INVALID_APPLICATION_ID, not only NOT_CONNECTED !!!!!
+
   });
 }
