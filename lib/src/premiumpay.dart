@@ -37,6 +37,10 @@ enum SyncStatus {
 
 abstract class PremiumPayAPI {
 
+  /// Create a new random installId
+  /// This method execute locally
+  /// Typically this method is called only one time during all the life of the app installation
+  /// and then the installId must be saved somewhere, so no more call is needed and the installId will not change pver execution.
   String createInstallId();
 
   Install createInstall(String installId, String applicationId, List<String> features);
