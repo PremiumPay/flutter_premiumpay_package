@@ -12,6 +12,12 @@ PremiumPayAPI premiumPayAPI = new _PremiumPayAPI();
 
 class ConnectResultImpl implements ConnectResult {
   final ConnectStatus status;
+
+  @override
+  String toString() {
+    return json.encode({"status": "$status"});
+  }
+
   ConnectResultImpl._internal(this.status);
 }
 
@@ -35,6 +41,14 @@ class InstallImpl implements Install  {
   final String installId;
   final String applicationId;
   final List<String> features;
+
+  @override
+  String toString() {
+    return json.encode({ "installId" : installId,
+      "applicationId" : applicationId,
+      "features" : features
+    });
+  }
 
   InstallImpl._internal(this.installId, this.applicationId, this.features);
 }
