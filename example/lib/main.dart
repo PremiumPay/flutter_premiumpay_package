@@ -10,6 +10,16 @@ import 'package:email_validator/email_validator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+class Feature {
+  final String feature_id;
+  final String feature_name;
+  bool activated;
+  String token;
+
+  Feature(this.feature_id, this.feature_name) {
+    activated = false;
+  }
+}
 
 class Data {
   String application_id;
@@ -113,7 +123,7 @@ Future<String> _getTokenFromSharedPref(Feature value) async {
 
 Future<void> _resetInstallId() async {
   final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('install_id', createInstallId());
+  await prefs.setString('install_id', premiumPayAPI.createInstallId());
 }
 
 Future<void> _resetAppId(String app) async {
@@ -588,8 +598,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                                           msg = "";
                                         });
 
-                                        Sync sync =  Sync( widget.data.install_id);
-                                         syncResult = await sync.syncRequest();
+                                         syncResult = await premiumPayAPI.syncRequest(widget.data.install_id);
                                         widget.data.permanentLink =
                                             syncResult.permanentLink;
                                         _resetPermanentLink(syncResult.permanentLink);
@@ -934,16 +943,14 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                                             widget.data.email =
                                                 email_controller.text;
                                             _resetEmail(email_controller.text);
-                                            Install install = new Install(
+                                            Install install = premiumPayAPI.createInstall(
                                                 await widget.data.install_id,
                                                 await widget.data.application_id,
                                                 widget.data.features);
-                                            Connect connect = new Connect(
-                                                install, widget.data.email);
                                             ConnectResult connectResult =
-                                                await connect.connectRequest(
-                                                    resend_email,
-                                                    accept_promo_offers);
+                                                await premiumPayAPI.connectRequest(install, widget.data.email,
+                                                    resendEmail: resend_email,
+                                                    acceptPromoOffers: accept_promo_offers);
                                             setState(() {
                                               showIcon = false;
                                             });
@@ -1033,11 +1040,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                       onEditingComplete: () async {
                         bool verified =
                         widget.data.token_controller_1.text.length == 96
-                            ? tokenVerification(
-                            widget.data.feature_1.feature_id +
-                                '@' +
-                                await widget.data.install_id,
-                            widget.data.token_controller_1.text)
+                            ? premiumPayAPI.verifyToken(await widget.data.install_id, widget.data.feature_1.feature_id, widget.data.token_controller_1.text)
                             : false;
                         if (verified) {
                           setState(() {
@@ -1076,11 +1079,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                     onPressed: () async {
                       bool verified =
                       widget.data.token_controller_1.text.length == 96
-                          ? tokenVerification(
-                          widget.data.feature_1.feature_id +
-                              '@' +
-                              await widget.data.install_id,
-                          widget.data.token_controller_1.text)
+                          ? premiumPayAPI.verifyToken(await widget.data.install_id, widget.data.feature_1.feature_id, widget.data.token_controller_1.text)
                           : false;
                       if (verified) {
                         setState(() {
@@ -1174,12 +1173,8 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                       readOnly: widget.data.feature_2.activated,
                       onEditingComplete: () async {
                         bool verified =
-                        checkTokenValidFormat(widget.data.token_controller_2.text)
-                            ? tokenVerification(
-                            widget.data.feature_2.feature_id +
-                                '@' +
-                                await widget.data.install_id,
-                            widget.data.token_controller_2.text)
+                        premiumPayAPI.checkTokenValidFormat(widget.data.token_controller_2.text)
+                            ? premiumPayAPI.verifyToken(await widget.data.install_id, widget.data.feature_2.feature_id, widget.data.token_controller_2.text)
                             : false;
                         if (verified) {
                           setState(() {
@@ -1217,11 +1212,9 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                     color: Colors.blue[900],
                     onPressed: () async {
                       bool verified =
-                      widget.data.token_controller_2.text.length == 96
-                          ? tokenVerification(
-                          widget.data.feature_2.feature_id +
-                              '@' +
-                              await widget.data.install_id,
+                      premiumPayAPI.checkTokenValidFormat(widget.data.token_controller_2.text)
+                          ? premiumPayAPI.verifyToken(await widget.data.install_id,
+                          widget.data.feature_2.feature_id,
                           widget.data.token_controller_2.text)
                           : false;
                       if (verified) {
