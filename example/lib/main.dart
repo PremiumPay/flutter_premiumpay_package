@@ -1,3 +1,5 @@
+import 'dart:html';
+
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter_premiumpay_package/flutter_premiumpay_package.dart';
@@ -7,6 +9,28 @@ import 'package:flutter/cupertino.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+
+class Data {
+  String application_id;
+  String install_id;
+  Feature feature_1;
+  Feature feature_2;
+  List<String> features;
+  String email;
+  bool connected;
+  String permanentLink;
+  TextEditingController token_controller_1;
+  TextEditingController token_controller_2;
+
+  Data(){
+    feature_1 = new Feature("jewish-time#1", "Jewish Time Premium");
+    feature_2 = new Feature("jewish-time#2", "Custom background");
+    features = [feature_1.feature_id, feature_2.feature_id];
+    token_controller_1 = new TextEditingController();
+    token_controller_2 = new TextEditingController();
+  }
+}
 
 Future<String> _getPermanentLinkFromSharedPref() async {
   final prefs = await SharedPreferences.getInstance();
@@ -132,46 +156,35 @@ class DemoAccessPage extends StatefulWidget {
 }
 
 class _DemoAccessPageState extends State<DemoAccessPage> {
-  String application_id;
-  String install_id;
-  Feature feature_1;
-  Feature feature_2;
-  List<String> features;
-  String email;
-  bool connected;
-  String permanentLink;
-  TextEditingController token_controller_1;
-  TextEditingController token_controller_2;
+
+  Data data;
   Future<bool> initialisation;
 
   @override
   void initState() {
+
     super.initState();
-    feature_1 = new Feature("jewish-time#1", "Jewish Time Premium");
-    feature_2 = new Feature("jewish-time#2", "Custom background");
-    features = [feature_1.feature_id, feature_2.feature_id];
-    token_controller_1 = new TextEditingController();
-    token_controller_2 = new TextEditingController();
+    data = Data();
     initialisation = init();
   }
 
   Future<bool> init() async {
-    feature_1.activated = await _getFeatureActivationFromSharedPref(feature_1);
-    feature_2.activated = await _getFeatureActivationFromSharedPref(feature_2);
-    if (feature_1.activated) {
-      feature_1.token = await _getTokenFromSharedPref(feature_1);
-      token_controller_1.text = feature_1.token;
+    data.feature_1.activated = await _getFeatureActivationFromSharedPref(data.feature_1);
+    data.feature_2.activated = await _getFeatureActivationFromSharedPref(data.feature_2);
+    if (data.feature_1.activated) {
+      data.feature_1.token = await _getTokenFromSharedPref(data.feature_1);
+      data.token_controller_1.text = data.feature_1.token;
     }
-    if (feature_2.activated) {
-      feature_2.token = await _getTokenFromSharedPref(feature_2);
-      token_controller_2.text = feature_2.token;
+    if (data.feature_2.activated) {
+      data.feature_2.token = await _getTokenFromSharedPref(data.feature_2);
+      data.token_controller_2.text = data.feature_2.token;
     }
 
-    email = await _getEmailFromSharedPref();
-    connected = await _getConnectedFromSharedPref();
-    application_id = await _getAppIdFromSharedPref();
-    install_id =await  _getInstallIdFromSharedPref();
-    permanentLink = await _getPermanentLinkFromSharedPref();
+    data.email = await _getEmailFromSharedPref();
+    data.connected = await _getConnectedFromSharedPref();
+    data.application_id = await _getAppIdFromSharedPref();
+    data.install_id =await  _getInstallIdFromSharedPref();
+    data.permanentLink = await _getPermanentLinkFromSharedPref();
     return true;
   }
 
@@ -203,11 +216,11 @@ class _DemoAccessPageState extends State<DemoAccessPage> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
                           Text(
-                            feature_1.feature_name + " feature: ",
+                            data.feature_1.feature_name + " feature: ",
                             style: TextStyle(
                                 color: Colors.blue[900], fontSize: 18),
                           ),
-                          feature_1.activated
+                          data.feature_1.activated
                               ? Icon(
                                   Icons.check_circle,
                                   color: Colors.green,
@@ -233,23 +246,25 @@ class _DemoAccessPageState extends State<DemoAccessPage> {
                                   fontStyle: FontStyle.italic,
                                   decoration: TextDecoration.underline),
                             ),
-                            onPressed: () {
-                              Navigator.push(
+                            onPressed: () async {
+                             final dataBack = await Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) => DemoConnectPage(
                                         notifyParent: refresh,
-                                        application_id: application_id,
-                                        install_id: install_id,
-                                        feature_1: feature_1,
-                                        feature_2: feature_2,
-                                        features: features,
-                                        email: email,
-                                        connected: connected,
-                                        token_controller_1: token_controller_1,
-                                        token_controller_2:
-                                            token_controller_2)),
-                              );
+                                        data:data
+                                  )),
+                              ) as Data;
+
+                             data.application_id = dataBack.application_id;
+                             data.install_id = dataBack.install_id;
+                             data.feature_1 = dataBack.feature_1;
+                             data.feature_2 = dataBack.feature_2;
+                             data.features = dataBack.features;
+                             data.email = dataBack.email;
+                             data.connected = dataBack.connected;
+                             data.token_controller_1 = dataBack.token_controller_1;
+                             data.token_controller_2 = dataBack.token_controller_2;
                             },
                           ),
                         ],
@@ -262,11 +277,11 @@ class _DemoAccessPageState extends State<DemoAccessPage> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
                           Text(
-                            feature_2.feature_name + " feature: ",
+                            data.feature_2.feature_name + " feature: ",
                             style: TextStyle(
                                 color: Colors.blue[900], fontSize: 18),
                           ),
-                          feature_2.activated
+                          data.feature_2.activated
                               ? Icon(
                                   Icons.check_circle,
                                   color: Colors.green,
@@ -290,24 +305,25 @@ class _DemoAccessPageState extends State<DemoAccessPage> {
                                   fontStyle: FontStyle.italic,
                                   decoration: TextDecoration.underline),
                             ),
-                            onPressed: () {
-                              Navigator.push(
+                            onPressed: () async {
+                             final dataBack = await Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) => DemoConnectPage(
                                           notifyParent: refresh,
-                                        application_id: application_id,
-                                        install_id: install_id,
-                                        feature_1: feature_1,
-                                        feature_2: feature_2,
-                                        features: features,
-                                        email: email,
-                                        connected: connected,
-                                        token_controller_1: token_controller_1,
-                                        token_controller_2:
-                                        token_controller_2
+                                          data : data
                                         )),
-                              );
+                              ) as Data;
+
+                             data.application_id = dataBack.application_id;
+                              data.install_id = dataBack.install_id;
+                              data.feature_1 = dataBack.feature_1;
+                              data.feature_2 = dataBack.feature_2;
+                               data.features = dataBack.features;
+                               data.email = dataBack.email;
+                               data.connected = dataBack.connected;
+                               data.token_controller_1 = dataBack.token_controller_1;
+                              data.token_controller_2 = dataBack.token_controller_2;
                             },
                           ),
                         ],
@@ -323,30 +339,12 @@ class _DemoAccessPageState extends State<DemoAccessPage> {
 class DemoConnectPage extends StatefulWidget {
 
   final Function() notifyParent;
-  String application_id;
-  String install_id;
-  Feature feature_1;
-  Feature feature_2;
-  List<String> features;
-  String email;
-  bool connected;
-  String permanentLink;
-  TextEditingController token_controller_1;
-  TextEditingController token_controller_2;
+  final Data data;
+
 
   DemoConnectPage(
       {Key key,
-      @required this.notifyParent,
-      this.application_id,
-      this.install_id,
-      this.feature_1,
-      this.feature_2,
-      this.features,
-      this.email,
-      this.connected,
-      this.permanentLink,
-      this.token_controller_1,
-      this.token_controller_2})
+      @required this.notifyParent, this.data})
       : super(key: key);
 
   @override
@@ -385,14 +383,17 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
     accountValidate = false;
     invalidToken_1 = false;
     invalidToken_2 = false;
-    syncResult = new SyncResult();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.connected) email_controller.text = widget.email;
+    if (widget.data.connected) email_controller.text = widget.data.email;
     return Scaffold(
       appBar: AppBar(
+        leading:  IconButton(
+            icon: new Icon(Icons.arrow_back),
+            onPressed: (){Navigator.pop(context,widget.data);}
+        ),
         title: Text(
           'Premium features',
           style: TextStyle(fontSize: 20),
@@ -407,20 +408,26 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
               height: 20,
             ),
             Visibility(
-                visible: !widget.connected,
+                visible: !widget.data.connected,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    Text(
-                        "To activate premium features you need to\nlink your installation to your account.",
-                        style:
-                            TextStyle(color: Colors.blue[900], fontSize: 18)),
+                    Container(
+                      width: MediaQuery.of(context).size.width * 0.9,
+                      child: Text(
+                          "To activate premium features you need to link your installation to your account.",
+                          softWrap: true,
+                          maxLines: 3,
+                          textAlign: TextAlign.center,
+                          style:
+                              TextStyle(color: Colors.blue[900], fontSize: 18)),
+                    ),
                   ],
                 )),
             SizedBox(height: 20),
 
-            (widget.connected)?
+            (widget.data.connected)?
 
             Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -433,7 +440,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                       decoration: BoxDecoration(
                           border: Border.all(
                               width: 1.5, color: Colors.blue[700])),
-                      child: Column(
+                      child:Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
@@ -441,7 +448,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                             height: 10,
                           ),
                           Text(
-                              "Your install ID: \n${widget.install_id}",
+                              "Your install ID: \n${widget.data.install_id}",
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                   fontSize: 18,
@@ -512,7 +519,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                                         onPressed: () {
                                           setState(() {
                                             _resetConnected(false);
-                                            widget.connected = false;
+                                            widget.data.connected = false;
                                             //  connectResult.status =
                                             //     ConnectStatus.NOT_CONNECTED;
                                             //  syncResult.status =
@@ -558,40 +565,32 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                                           msg = "";
                                         });
 
-                                        Sync sync =
-                                        new Sync( widget.install_id);
-                                        syncResult = await sync.syncRequest();
-                                        widget.permanentLink =
+                                        Sync sync =  Sync( widget.data.install_id);
+                                         syncResult = await sync.syncRequest();
+                                        widget.data.permanentLink =
                                             syncResult.permanentLink;
                                         _resetPermanentLink(syncResult.permanentLink);
-                                        if (syncResult.status ==
-                                            SyncStatus.ACTIVATED_TOKEN) {
+
+                                        if (syncResult.status == SyncStatus.ACTIVATED_TOKEN) {
+
                                           (syncResult.tokens.length == 1) ?
-                                          msg = syncResult.tokens.length.toString() +
-                                              " token loaded." :
-                                          msg = syncResult.tokens.length.toString() +
-                                              " tokens loaded.";
-                                          for (int i = 0;
-                                          i < syncResult.tokens.length;
-                                          i++) {
-                                            if (widget.feature_1.feature_id ==
-                                                syncResult.tokens[i][0]) {
-                                              _resetFeatureActivation(
-                                                  widget.feature_1);
-                                              _resetToken(widget.feature_1,
-                                                  syncResult.tokens[i][1]);
-                                              widget.token_controller_1.text =
-                                                  widget.feature_1.token;
+                                          msg = syncResult.tokens.length.toString() + " token loaded."
+                                              :
+                                          msg = syncResult.tokens.length.toString() + " tokens loaded.";
+
+                                          for (int i = 0; i < syncResult.tokens.length; i++) {
+
+                                            if (widget.data.feature_1.feature_id == syncResult.tokens[i].feature_id) {
+
+                                              _resetFeatureActivation(widget.data.feature_1);
+                                              _resetToken(widget.data.feature_1, syncResult.tokens[i].token);
+                                              widget.data.token_controller_1.text = widget.data.feature_1.token;
                                             }
-                                            if (widget.feature_2.feature_id ==
-                                                syncResult.tokens[i][0]) {
-                                              await _resetFeatureActivation(
-                                                  widget.feature_2);
-                                              await _resetToken(
-                                                  widget.feature_2,
-                                                  syncResult.tokens[i][1]);
-                                              widget.token_controller_2.text =
-                                                  widget.feature_2.token;
+                                            if (widget.data.feature_2.feature_id == syncResult.tokens[i].feature_id) {
+
+                                              await _resetFeatureActivation(widget.data.feature_2);
+                                              await _resetToken(widget.data.feature_2, syncResult.tokens[i].token);
+                                              widget.data.token_controller_2.text = widget.data.feature_2.token;
                                             }
                                           }
                                           setState(() {
@@ -668,12 +667,12 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                                   style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.normal,
-                                      color: (syncResult.status ==
+                                      color: (syncResult != null && syncResult.status ==
                                           SyncStatus.ACTIVATED_TOKEN)
                                           ? Colors.green
                                           : Colors.red))),
                           Visibility(
-                              visible: (widget.permanentLink != ""),
+                              visible: (widget.data.permanentLink != ""),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -687,7 +686,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                                           fontSize: 18)),
                                   FlatButton(
                                     onPressed: () async {
-                                      String url = widget.permanentLink;
+                                      String url = widget.data.permanentLink;
                                       if (await canLaunch(url)) {
                                         await launch(url);
                                       } else {
@@ -720,7 +719,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                         decoration: BoxDecoration(
                             border: Border.all(
                                 width: 1.5, color: Colors.blue[700])),
-                        child: Column(
+                        child: SingleChildScrollView(child:Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: <Widget>[
@@ -728,7 +727,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                               height: 10,
                             ),
                                       Text(
-                                        "Your install ID: \n${widget.install_id}",
+                                        "Your install ID: \n${widget.data.install_id}",
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
                                             fontSize: 18,
@@ -857,7 +856,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                                       width: 5,
                                     ),
                                     Text(
-                                        "I accept the conditions of utilisation.",
+                                        "I accept the conditions of use.",
                                         style: TextStyle(
                                             color: (need_to_accept_conditions)
                                                 ? Colors.red
@@ -909,15 +908,15 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                                             setState(() {
                                               showIcon = true;
                                             });
-                                            widget.email =
+                                            widget.data.email =
                                                 email_controller.text;
                                             _resetEmail(email_controller.text);
                                             Install install = new Install(
-                                                await widget.install_id,
-                                                await widget.application_id,
-                                                widget.features);
+                                                await widget.data.install_id,
+                                                await widget.data.application_id,
+                                                widget.data.features);
                                             Connect connect = new Connect(
-                                                install, widget.email);
+                                                install, widget.data.email);
                                             ConnectResult connectResult =
                                                 await connect.connectRequest(
                                                     resend_email,
@@ -925,11 +924,12 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                                             setState(() {
                                               showIcon = false;
                                             });
+                                            print("connectResult: "+ connectResult.toString());
                                             if (connectResult.status ==
                                                 ConnectStatus
                                                     .NEED_TO_VERIFY_EMAIL) {
                                               setState(() {
-                                                widget.connected = true;
+                                                widget.data.connected = true;
                                                 _resetConnected(true);
                                                 msg =
                                                     "Check your email and click on the link provided to link your installation.";
@@ -940,7 +940,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                                                     .SUCCESSFUL_CONNECT) {
                                               setState(() {
                                                 accountValidate = true;
-                                                widget.connected = true;
+                                                widget.data.connected = true;
                                                 _resetConnected(true);
                                               });
                                             }
@@ -973,7 +973,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                                           fontSize: 18)),
                                 ),
                           ],
-                        )),
+                        ))),
 
                   ]),
             SizedBox(
@@ -985,7 +985,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
             SizedBox(
               height: 20,
             ),
-            Text(widget.feature_1.feature_name,
+            Text(widget.data.feature_1.feature_name,
                 style:
                 TextStyle(color: Colors.blue[900], fontSize: 18)),
             SizedBox(
@@ -1000,30 +1000,30 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                     width: MediaQuery.of(context).size.width * 0.75,
                     decoration: BoxDecoration(
                       border: new Border.all(color: Colors.blue[600]),
-                      color: widget.feature_1.activated
+                      color: widget.data.feature_1.activated
                           ? Colors.grey
                           : Colors.white,
                     ),
                     child: TextField(
-                      controller: widget.token_controller_1,
-                      readOnly: widget.feature_1.activated,
+                      controller: widget.data.token_controller_1,
+                      readOnly: widget.data.feature_1.activated,
                       onEditingComplete: () async {
                         bool verified =
-                        widget.token_controller_1.text.length == 96
+                        widget.data.token_controller_1.text.length == 96
                             ? tokenVerification(
-                            widget.feature_1.feature_id +
+                            widget.data.feature_1.feature_id +
                                 '@' +
-                                await widget.install_id,
-                            widget.token_controller_1.text)
+                                await widget.data.install_id,
+                            widget.data.token_controller_1.text)
                             : false;
                         if (verified) {
                           setState(() {
-                            widget.feature_1.activated = true;
-                            _resetFeatureActivation(widget.feature_1);
-                            widget.feature_1.token =
-                                widget.token_controller_1.text;
-                            _resetToken(widget.feature_1,
-                                widget.token_controller_1.text);
+                            widget.data.feature_1.activated = true;
+                            _resetFeatureActivation(widget.data.feature_1);
+                            widget.data.feature_1.token =
+                                widget.data.token_controller_1.text;
+                            _resetToken(widget.data.feature_1,
+                                widget.data.token_controller_1.text);
                           });
                         } else {
                           setState(() {
@@ -1052,21 +1052,21 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                     color: Colors.blue[900],
                     onPressed: () async {
                       bool verified =
-                      widget.token_controller_1.text.length == 96
+                      widget.data.token_controller_1.text.length == 96
                           ? tokenVerification(
-                          widget.feature_1.feature_id +
+                          widget.data.feature_1.feature_id +
                               '@' +
-                              await widget.install_id,
-                          widget.token_controller_1.text)
+                              await widget.data.install_id,
+                          widget.data.token_controller_1.text)
                           : false;
                       if (verified) {
                         setState(() {
-                          widget.feature_1.activated = true;
-                          _resetFeatureActivation(widget.feature_1);
-                          widget.feature_1.token =
-                              widget.token_controller_1.text;
-                          _resetToken(widget.feature_1,
-                              widget.token_controller_1.text);
+                          widget.data.feature_1.activated = true;
+                          _resetFeatureActivation(widget.data.feature_1);
+                          widget.data.feature_1.token =
+                              widget.data.token_controller_1.text;
+                          _resetToken(widget.data.feature_1,
+                              widget.data.token_controller_1.text);
                         });
                       } else {
                         setState(() {
@@ -1081,7 +1081,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
               height: 10,
             ),
             Visibility(
-                visible: widget.feature_1.activated,
+                visible: widget.data.feature_1.activated,
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -1127,7 +1127,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
             SizedBox(
               height: 10,
             ),
-            Text(widget.feature_2.feature_name,
+            Text(widget.data.feature_2.feature_name,
                 style:
                 TextStyle(color: Colors.blue[900], fontSize: 18)),
             SizedBox(
@@ -1142,30 +1142,30 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                     width: MediaQuery.of(context).size.width * 0.75,
                     decoration: BoxDecoration(
                       border: new Border.all(color: Colors.blue[600]),
-                      color: widget.feature_2.activated
+                      color: widget.data.feature_2.activated
                           ? Colors.grey
                           : Colors.white,
                     ),
                     child: TextField(
-                      controller: widget.token_controller_2,
-                      readOnly: widget.feature_2.activated,
+                      controller: widget.data.token_controller_2,
+                      readOnly: widget.data.feature_2.activated,
                       onEditingComplete: () async {
                         bool verified =
-                        widget.token_controller_2.text.length == 96
+                        widget.data.token_controller_2.text.length == 96
                             ? tokenVerification(
-                            widget.feature_2.feature_id +
+                            widget.data.feature_2.feature_id +
                                 '@' +
-                                await widget.install_id,
-                            widget.token_controller_2.text)
+                                await widget.data.install_id,
+                            widget.data.token_controller_2.text)
                             : false;
                         if (verified) {
                           setState(() {
-                            widget.feature_2.activated = true;
-                            _resetFeatureActivation(widget.feature_2);
-                            widget.feature_2.token =
-                                widget.token_controller_2.text;
-                            _resetToken(widget.feature_2,
-                                widget.token_controller_2.text);
+                            widget.data.feature_2.activated = true;
+                            _resetFeatureActivation(widget.data.feature_2);
+                            widget.data.feature_2.token =
+                                widget.data.token_controller_2.text;
+                            _resetToken(widget.data.feature_2,
+                                widget.data.token_controller_2.text);
                           });
                           widget.notifyParent();
                         } else {
@@ -1194,21 +1194,21 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                     color: Colors.blue[900],
                     onPressed: () async {
                       bool verified =
-                      widget.token_controller_2.text.length == 96
+                      widget.data.token_controller_2.text.length == 96
                           ? tokenVerification(
-                          widget.feature_2.feature_id +
+                          widget.data.feature_2.feature_id +
                               '@' +
-                              await widget.install_id,
-                          widget.token_controller_2.text)
+                              await widget.data.install_id,
+                          widget.data.token_controller_2.text)
                           : false;
                       if (verified) {
                         setState(() {
-                          widget.feature_2.activated = true;
-                          _resetFeatureActivation(widget.feature_2);
-                          widget.feature_2.token =
-                              widget.token_controller_2.text;
-                          _resetToken(widget.feature_2,
-                              widget.token_controller_2.text);
+                          widget.data.feature_2.activated = true;
+                          _resetFeatureActivation(widget.data.feature_2);
+                          widget.data.feature_2.token =
+                              widget.data.token_controller_2.text;
+                          _resetToken(widget.data.feature_2,
+                              widget.data.token_controller_2.text);
                         });
                         widget.notifyParent();
                       } else {
@@ -1223,7 +1223,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
               height: 10,
             ),
             Visibility(
-                visible: widget.feature_2.activated,
+                visible: widget.data.feature_2.activated,
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
