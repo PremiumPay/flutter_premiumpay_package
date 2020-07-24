@@ -1,3 +1,5 @@
+import 'package:flutter_premiumpay_package/flutter_premiumpay_package.dart';
+
 import 'premiumpay.dart';
 
 import 'dart:async';
@@ -30,11 +32,15 @@ class TokenImpl implements Token {
 
 class SyncResultImpl  implements SyncResult {
   final SyncStatus status;
-  final bool emailVerified;
   final List<Token> tokens;
   final String permanentLink;
 
-  SyncResultImpl._internal(this.status, this.emailVerified, List<Token> tokens, this.permanentLink): tokens = List.unmodifiable(tokens);
+  @override
+  String toString() {
+    return json.encode({"status": "$status" , "tokens": "$tokens", "permanentLink": "$permanentLink"});
+  }
+
+  SyncResultImpl._internal(this.status, List<Token> tokens, this.permanentLink): tokens = List.unmodifiable(tokens);
 }
 
 class InstallImpl implements Install  {
@@ -68,26 +74,53 @@ class  _PremiumPayAPI implements PremiumPayAPI {
   }
 
   @override
+  Token createToken(String featureId, String token) {
+    return TokenImpl._internal(featureId, token);
+  }
+
+  @override
   Future<ConnectResult> connectRequest(Install install, String email, { bool resendEmail = false, bool acceptPromoOffers = false, String lang = 'en'}) async {
     String connectUrl = "https://api.premiumpay.site/connect";
     String jsonBody =
-        '{ "email": "$email", "install_id": "${install.installId}", "application_id":"${install.applicationId}" , "resend_email": $resendEmail , "features": "${install.features}", "accept_promo_offers": "$acceptPromoOffers","from":"application"}';
+        '{ "email": "$email", "install_id": "${install.installId}", "application_id":"${install.applicationId}" , "resend_email": $resendEmail , "features": ${install.features}, "accept_promo_offers": "$acceptPromoOffers","from":"application"}';
     Map<String, String> headers = {"Content-type": "application/json"};
     ConnectStatus status;
     http.Response response =
     await http.post(connectUrl, headers: headers, body: jsonBody);
     dynamic responseBody = jsonDecode(response.body);
-    if (responseBody["result"] == "ok" && responseBody["verified"]) {
-      status = ConnectStatus.SUCCESSFUL_CONNECT;
-    } else {
-      if (responseBody["result"] == "ok" && !responseBody["verified"]) {
-        status = ConnectStatus.NEED_TO_VERIFY_EMAIL;
-      } else {
-        status = ConnectStatus.NOT_CONNECTED;
+    switch(responseBody["result"]){
+
+      case "ok": {
+        if(responseBody["verified"]){
+          status = ConnectStatus.SUCCESSFUL_CONNECT;
+        }
+        else{
+          status = ConnectStatus.NEED_TO_VERIFY_EMAIL;
+        }
+        break;
       }
+
+      case "invalid_app_id": {
+        status= ConnectStatus.INVALID_APPLICATION_ID;
+        break;
+      }
+      default: status = ConnectStatus.CONNEXION_FAILURE;
     }
     ConnectResult connectResult = ConnectResultImpl._internal(status);
     return connectResult;
+  }
+
+  static SyncStatus _decode(String str) {
+    switch (str) {
+      case "INSTALLATION_NOT_LINKED":
+        return SyncStatus.INSTALLATION_NOT_LINKED;
+      case "INSTALLATION_LINKED":
+        return SyncStatus.INSTALLATION_LINKED;
+      case "ACTIVATED_TOKEN":
+        return SyncStatus.ACTIVATED_TOKEN;
+      default:
+        throw Exception("incorrect SyncStatus value: $str");
+    }
   }
 
   @override
@@ -103,15 +136,15 @@ class  _PremiumPayAPI implements PremiumPayAPI {
     SyncStatus status = _decode(responseBody["result"]);
 
     if (status == SyncStatus.ACTIVATED_TOKEN) {
-      //TODO FAF: You need to return directly a json list instead!
-      int number_of_token = responseBody["number_of_token"];
-      for (int i = 0; i < number_of_token; i++) {
-        Token token = TokenImpl._internal(responseBody["feature_${i + 1}"], responseBody["token_${i + 1}"]);
-        list.add(token);
-      }
-    }
 
-    SyncResult syncResult = SyncResultImpl._internal(status, responseBody["verified"], list, responseBody["permanentLink"]);
+      for(int i=0; i< responseBody["tokens"].toList().length ;i++) {
+
+        Token token = TokenImpl._internal(responseBody["tokens"][i]["feature_id"], responseBody["tokens"][i]["token"]);
+        list.add(token);
+
+      }}
+
+    SyncResult syncResult = SyncResultImpl._internal(status, list, responseBody["permanentLink"]);
     return syncResult;
   }
 
@@ -121,18 +154,7 @@ class  _PremiumPayAPI implements PremiumPayAPI {
     return token.length == 96;
   }
 
-  static SyncStatus _decode(String str) {
-    switch (str) {
-      case "NOT_CONNECTED":
-        return SyncStatus.NOT_CONNECTED;
-      case "SUCCESSFUL_SYNC":
-        return SyncStatus.SUCCESSFUL_SYNC;
-      case "ACTIVATED_TOKEN":
-        return SyncStatus.ACTIVATED_TOKEN;
-      default:
-        throw Exception("incorrect SyncStatus value: $str");
-    }
-  }
+
 
   @override
   bool verifyReceivedToken(String installId, Token token) {

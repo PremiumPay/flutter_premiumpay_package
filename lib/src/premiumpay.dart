@@ -8,8 +8,9 @@ abstract  class Install {
 enum ConnectStatus {
   SUCCESSFUL_CONNECT,
   NEED_TO_VERIFY_EMAIL,
-  INVALID_EMAIL,
-  NOT_CONNECTED
+  INVALID_EMAIL, // not use
+  CONNEXION_FAILURE, // server request failure
+  INVALID_APPLICATION_ID
 }
 
 abstract class ConnectResult {
@@ -23,15 +24,14 @@ abstract class Token {
 
 abstract class SyncResult {
   SyncStatus get status;
-  bool get emailVerified;
   List<Token> get tokens;
   String get permanentLink;
 }
 
 
 enum SyncStatus {
-  SUCCESSFUL_SYNC,
-  NOT_CONNECTED,
+  INSTALLATION_LINKED,
+  INSTALLATION_NOT_LINKED,
   ACTIVATED_TOKEN
 }
 
@@ -51,8 +51,11 @@ abstract class PremiumPayAPI {
 
   bool checkTokenValidFormat(String token);
 
+  /// the token must be of valid format to be verify (change on last letter equal to '=' will invalid the format), if not the method will throw an exception
   bool verifyToken(String installId, String featureId, String token);
 
   bool verifyReceivedToken(String installId, Token token);
+
+  Token createToken(String featureId, String token);
 
 }
