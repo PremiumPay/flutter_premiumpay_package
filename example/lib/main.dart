@@ -10,6 +10,7 @@ import 'package:email_validator/email_validator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+
 class Feature {
   final String feature_id;
   final String feature_name;
@@ -393,10 +394,11 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
   bool showIcon;
   bool accept_conditions_of_utilisation;
   bool need_to_accept_conditions;
-  bool accountValidate;
+//  bool accountValidate;
   bool invalidToken_1;
   bool invalidToken_2;
-  SyncResult syncResult;
+  SyncResult syncResult ;
+  ConnectResult connectResult;
 
   @override
   void initState() {
@@ -413,7 +415,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
     showIcon = false;
     accept_conditions_of_utilisation = false;
     need_to_accept_conditions = false;
-    accountValidate = false;
+ //   accountValidate = false;
     invalidToken_1 = false;
     invalidToken_2 = false;
   }
@@ -558,7 +560,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                                             //  syncResult.status =
                                             //      SyncStatus.NOT_CONNECTED;
                                             msg = "";
-                                            accountValidate = false;
+                                       //     accountValidate = false;
                                             _resetPermanentLink("");
                                           });
                                         },
@@ -603,52 +605,51 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                                             syncResult.permanentLink;
                                         _resetPermanentLink(syncResult.permanentLink);
 
-                                        if (syncResult.status == SyncStatus.ACTIVATED_TOKEN) {
+                                        switch(syncResult.status){
 
-                                          (syncResult.tokens.length == 1) ?
-                                          msg = syncResult.tokens.length.toString() + " token loaded."
-                                              :
-                                          msg = syncResult.tokens.length.toString() + " tokens loaded.";
+                                          case SyncStatus.ACTIVATED_TOKEN :{
 
-                                          for (int i = 0; i < syncResult.tokens.length; i++) {
+                                            (syncResult.tokens.length == 1) ?
+                                            msg = syncResult.tokens.length.toString() + " token loaded."
+                                                :
+                                            msg = syncResult.tokens.length.toString() + " tokens loaded.";
 
-                                            if (widget.data.feature_1.feature_id == syncResult.tokens[i].featureId) {
+                                            for (int i = 0; i < syncResult.tokens.length; i++) {
 
-                                              _resetFeatureActivation(widget.data.feature_1);
-                                              _resetToken(widget.data.feature_1, syncResult.tokens[i].token);
-                                              widget.data.token_controller_1.text = widget.data.feature_1.token;
+                                              if (widget.data.feature_1.feature_id == syncResult.tokens[i].featureId) {
+
+                                                _resetFeatureActivation(widget.data.feature_1);
+                                                _resetToken(widget.data.feature_1, syncResult.tokens[i].token);
+                                                widget.data.token_controller_1.text = widget.data.feature_1.token;
+                                              }
+                                              if (widget.data.feature_2.feature_id == syncResult.tokens[i].featureId) {
+
+                                                await _resetFeatureActivation(widget.data.feature_2);
+                                                await _resetToken(widget.data.feature_2, syncResult.tokens[i].token);
+                                                widget.data.token_controller_2.text = widget.data.feature_2.token;
+                                              }
                                             }
-                                            if (widget.data.feature_2.feature_id == syncResult.tokens[i].featureId) {
-
-                                              await _resetFeatureActivation(widget.data.feature_2);
-                                              await _resetToken(widget.data.feature_2, syncResult.tokens[i].token);
-                                              widget.data.token_controller_2.text = widget.data.feature_2.token;
-                                            }
-                                          }
-                                          setState(() {
-                                            showIcon = false;
-                                          });
-                                          widget.notifyParent();
-                                        } else {
-                                          if (syncResult.status ==
-                                              SyncStatus.SUCCESSFUL_SYNC) {
-                                            if (!syncResult.emailVerified) {
-                                              setState(() {
-                                                showIcon = false;
-                                                msg =
-                                                "Check your email and click on the link provided to link your installation.";
-                                              });
-                                            } else {
-                                              setState(() {
-                                                showIcon = false;
-                                                accountValidate = true;
-                                              });
-                                            }
-                                          } else {
                                             setState(() {
                                               showIcon = false;
-                                              msg = "connection failure.";
                                             });
+                                            widget.notifyParent();
+                                            break;
+                                          }
+                                          case SyncStatus.INSTALLATION_LINKED : {
+                                            setState(() {
+                                              showIcon = false;
+                                              msg =
+                                              "The installation is linked but no feature has been added.";
+                                            });
+                                            break;
+                                          }
+                                          case SyncStatus.INSTALLATION_NOT_LINKED : {
+                                            setState(() {
+                                              showIcon = false;
+                                              msg =
+                                              "The installation need to be linked to an account.";
+                                            });
+                                            break;
                                           }
                                         }
                                     },
@@ -669,40 +670,17 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                           SizedBox(
                             height: 30,
                           ),
-                          (accountValidate)
-                              ? Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment:
-                            CrossAxisAlignment.center,
-                            children: <Widget>[
-                              Icon(
-                                Icons.check_circle,
-                                color: Colors.green,
-                                size: 30,
-                              ),
-                              SizedBox(
-                                width: 10,
-                              ),
-                              Text(
-                                "Your installation has been linked.",
-                                style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.normal,
-                                    color: Colors.green),
-                              )
-                            ],
-                          )
-                              : Padding(
+                           Padding(
                               padding:
                               EdgeInsets.only(right: 12, left: 10),
                               child: Text(msg,
                                   style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.normal,
-                                      color: (syncResult != null && syncResult.status ==
-                                          SyncStatus.ACTIVATED_TOKEN)
-                                          ? Colors.green
-                                          : Colors.red))),
+                                      color: ((syncResult != null &&  syncResult.status ==
+                                          SyncStatus.INSTALLATION_NOT_LINKED) || ( connectResult != null && connectResult.status == ConnectStatus.NEED_TO_VERIFY_EMAIL  ))
+                                          ? Colors.red
+                                          : Colors.green))),
                           Visibility(
                               visible: (widget.data.permanentLink != ""),
                               child: Row(
@@ -947,33 +925,34 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                                                 await widget.data.install_id,
                                                 await widget.data.application_id,
                                                 widget.data.features);
-                                            ConnectResult connectResult =
+                                             connectResult =
                                                 await premiumPayAPI.connectRequest(install, widget.data.email,
                                                     resendEmail: resend_email,
                                                     acceptPromoOffers: accept_promo_offers);
                                             setState(() {
                                               showIcon = false;
                                             });
-                                            print("connectResult: "+ connectResult.toString());
-                                            if (connectResult.status ==
-                                                ConnectStatus
-                                                    .NEED_TO_VERIFY_EMAIL) {
-                                              setState(() {
-                                                widget.data.connected = true;
-                                                _resetConnected(true);
-                                                msg =
-                                                    "Check your email and click on the link provided to link your installation.";
-                                              });
+                                            switch(connectResult.status){
+                                              case ConnectStatus.NEED_TO_VERIFY_EMAIL:{
+                                                setState(() {
+                                                  widget.data.connected = true;
+                                                  _resetConnected(true);
+                                                  msg =
+                                                  "Check your email and click on the link provided to link your installation.";
+                                                });
+                                                break;
+                                              }
+                                              case ConnectStatus.SUCCESSFUL_CONNECT: {
+                                                setState(() {
+                                              //    accountValidate = true;
+                                                  widget.data.connected = true;
+                                                  _resetConnected(true);
+                                                });
+                                                break;
+                                              }
+
                                             }
-                                            if (connectResult.status ==
-                                                ConnectStatus
-                                                    .SUCCESSFUL_CONNECT) {
-                                              setState(() {
-                                                accountValidate = true;
-                                                widget.data.connected = true;
-                                                _resetConnected(true);
-                                              });
-                                            }
+
                                           }
 
                                       },

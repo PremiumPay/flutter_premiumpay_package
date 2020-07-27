@@ -28,6 +28,15 @@ class TokenImpl implements Token {
   final String token;
 
   TokenImpl._internal(this.featureId, this.token);
+
+  @override
+  String toString() {
+    return json.encode({
+      "featureId" : featureId,
+      "token" : token,
+    });
+  }
+
 }
 
 class SyncResultImpl  implements SyncResult {
@@ -76,6 +85,7 @@ class  _PremiumPayAPI implements PremiumPayAPI {
   @override
   Token createToken(String featureId, String token) {
     return TokenImpl._internal(featureId, token);
+
   }
 
   @override
@@ -151,7 +161,18 @@ class  _PremiumPayAPI implements PremiumPayAPI {
   /// fast local test
   @override
   bool checkTokenValidFormat(String token) {
-    return token.length == 96;
+
+    if(token.length != 96)
+      return false;
+    var signatureToken = base64Decode(token);
+    var p = ASN1Parser(signatureToken);
+    try{
+      ASN1Sequence seq1 = p.nextObject();
+    }catch(e){
+      return false;
+    }
+
+    return true;
   }
 
 
