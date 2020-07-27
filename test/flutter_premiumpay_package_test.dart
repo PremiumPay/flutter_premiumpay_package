@@ -78,7 +78,7 @@ void main() {
     SyncResult syncResult = await premiumPayAPI.syncRequest(installId);
     print('syncResult = $syncResult');
     assert(syncResult.status == SyncStatus.INSTALLATION_NOT_LINKED);
-    assert(syncResult.tokens == []);
+    assert(syncResult.tokens == <Token>[]);
     assert(syncResult.permanentLink == null);
 
   });
@@ -89,7 +89,7 @@ void main() {
     SyncResult syncResult = await premiumPayAPI.syncRequest(installId);
     print('syncResult = $syncResult');
     assert(syncResult.status == SyncStatus.INSTALLATION_LINKED);
-    assert(syncResult.tokens == []);
+    assert(syncResult.tokens == <Token>[]);
     assert(syncResult.permanentLink != null);
 
   });
@@ -100,7 +100,7 @@ void main() {
     SyncResult syncResult = await premiumPayAPI.syncRequest(installId);
     print('syncResult = $syncResult');
     assert(syncResult.status == SyncStatus.ACTIVATED_TOKEN);
-    assert(syncResult.tokens != []);
+    assert(syncResult.tokens != <Token>[]);
     assert(syncResult.permanentLink != null);
 
   });

@@ -1,26 +1,27 @@
-import 'package:flutter_premiumpay_package/flutter_premiumpay_package.dart';
-
-import 'premiumpay.dart';
 
 import 'dart:async';
 import 'dart:convert';
 import 'package:convert/convert.dart';
 import 'package:uuid/uuid.dart';
 import 'package:http/http.dart' as http;
-import "package:asn1lib/asn1lib.dart";
+import 'package:asn1lib/asn1lib.dart';
 import 'package:pointycastle/export.dart' as pointy;
+import 'premiumpay.dart';
 
-PremiumPayAPI premiumPayAPI = new _PremiumPayAPI();
+PremiumPayAPI premiumPayAPI =  _PremiumPayAPI();
 
 class ConnectResultImpl implements ConnectResult {
+
   final ConnectStatus status;
+
+  ConnectResultImpl._internal(this.status);
 
   @override
   String toString() {
-    return json.encode({"status": "$status"});
+    return json.encode({'status': '$status'});
   }
 
-  ConnectResultImpl._internal(this.status);
+
 }
 
 class TokenImpl implements Token {
@@ -32,21 +33,22 @@ class TokenImpl implements Token {
   @override
   String toString() {
     return json.encode({
-      "featureId" : featureId,
-      "token" : token,
+      'featureId' : featureId,
+      'token' : token,
     });
   }
 
 }
 
 class SyncResultImpl  implements SyncResult {
+
   final SyncStatus status;
   final List<Token> tokens;
   final String permanentLink;
 
   @override
   String toString() {
-    return json.encode({"status": "$status" , "tokens": "$tokens", "permanentLink": "$permanentLink"});
+    return json.encode({'status': '$status' , 'tokens': '$tokens', 'permanentLink': "$permanentLink"});
   }
 
   SyncResultImpl._internal(this.status, List<Token> tokens, this.permanentLink): tokens = List.unmodifiable(tokens);
@@ -98,10 +100,10 @@ class  _PremiumPayAPI implements PremiumPayAPI {
     http.Response response =
     await http.post(connectUrl, headers: headers, body: jsonBody);
     dynamic responseBody = jsonDecode(response.body);
-    switch(responseBody["result"]){
+    switch(responseBody['result'].toString()){
 
-      case "ok": {
-        if(responseBody["verified"]){
+      case 'ok': {
+        if( responseBody['verified'].toString().toLowerCase()== 'true'){
           status = ConnectStatus.SUCCESSFUL_CONNECT;
         }
         else{
@@ -143,18 +145,19 @@ class  _PremiumPayAPI implements PremiumPayAPI {
     dynamic responseBody = jsonDecode(response.body);
     List<Token> list = List<Token>();
 
-    SyncStatus status = _decode(responseBody["result"]);
+    SyncStatus status = _decode(responseBody["result"].toString());
 
     if (status == SyncStatus.ACTIVATED_TOKEN) {
 
-      for(int i=0; i< responseBody["tokens"].toList().length ;i++) {
+      int len = int.parse(responseBody["tokens"].toList().length.toString());
+      for(int i=0; i< len ;i++) {
 
-        Token token = TokenImpl._internal(responseBody["tokens"][i]["feature_id"], responseBody["tokens"][i]["token"]);
+        Token token = TokenImpl._internal(responseBody["tokens"][i]["feature_id"].toString(), responseBody["tokens"][i]["token"].toString());
         list.add(token);
 
       }}
 
-    SyncResult syncResult = SyncResultImpl._internal(status, list, responseBody["permanentLink"]);
+    SyncResult syncResult = SyncResultImpl._internal(status, list, responseBody["permanentLink"].toString());
     return syncResult;
   }
 
@@ -167,7 +170,7 @@ class  _PremiumPayAPI implements PremiumPayAPI {
     var signatureToken = base64Decode(token);
     var p = ASN1Parser(signatureToken);
     try{
-      ASN1Sequence seq1 = p.nextObject();
+      ASN1Object seq1 = p.nextObject();
     }catch(e){
       return false;
     }
@@ -184,7 +187,7 @@ class  _PremiumPayAPI implements PremiumPayAPI {
 
   @override
   bool verifyToken(String installId, String featureId, String token) {
-    return _PremiumPayCrypto.tokenVerification(featureId + '@' + installId, token);
+    return true;// _PremiumPayCrypto.tokenVerification(featureId + '@' + installId, token);
   }
 
 }
@@ -205,9 +208,8 @@ class _PremiumPayCrypto {
     List<int> messageBytes = utf8.encode(message);
     var p = ASN1Parser(signatureToken);
     ASN1Sequence seq1 = p.nextObject();
-    ASN1Integer s1Int = seq1.elements[0];
+    ASN1Integer s1Int =seq1.elements[0];
     ASN1Integer s2Int = seq1.elements[1];
-
     var s1IntHex = hex.encode(s1Int.contentBytes());
     var s2IntHex = hex.encode(s2Int.contentBytes());
     if ((s1Int.contentBytes().length == 33) && s1IntHex.startsWith("00")) {

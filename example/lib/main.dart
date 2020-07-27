@@ -199,7 +199,7 @@ class _DemoAccessPageState extends State<DemoAccessPage> {
     return true;
   }
 
-  refresh() {
+ void refresh() {
     setState(() {});
   }
 
@@ -252,9 +252,9 @@ class _DemoAccessPageState extends State<DemoAccessPage> {
                                         decoration: TextDecoration.underline),
                                   ),
                                   onPressed: () async {
-                                    final dataBack = await Navigator.push(
+                                    final dataBack = await Navigator.push<Object>(
                                       context,
-                                      MaterialPageRoute(
+                                      MaterialPageRoute<dynamic>(
                                           builder: (context) => DemoConnectPage(
                                               notifyParent: refresh,
                                               data:data
@@ -308,9 +308,9 @@ class _DemoAccessPageState extends State<DemoAccessPage> {
                                   decoration: TextDecoration.underline),
                             ),
                             onPressed: () async {
-                              final dataBack = await Navigator.push(
+                              final dataBack = await Navigator.push<Object>(
                                 context,
-                                MaterialPageRoute(
+                                MaterialPageRoute<dynamic>(
                                     builder: (context) => DemoConnectPage(
                                         notifyParent: refresh,
                                         data : data
@@ -341,9 +341,9 @@ class _DemoAccessPageState extends State<DemoAccessPage> {
                                   decoration: TextDecoration.underline),
                             ),
                             onPressed: () async {
-                              final dataBack = await Navigator.push(
+                              final dataBack = await Navigator.push<Object>(
                                 context,
-                                MaterialPageRoute(
+                                MaterialPageRoute<dynamic>(
                                     builder: (context) => DemoConnectPage(
                                         notifyParent: refresh,
                                         data : data
