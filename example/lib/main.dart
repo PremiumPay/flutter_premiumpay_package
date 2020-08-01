@@ -1,4 +1,3 @@
-import 'dart:html';
 
 import 'package:flutter/material.dart';
 import 'dart:async';
@@ -9,6 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:provider/provider.dart';
 
 
 class Feature {
@@ -22,33 +22,99 @@ class Feature {
   }
 }
 
-class Data {
-  String application_id;
+class Data extends ChangeNotifier{
+  String application_id ;
   String install_id;
-  Feature feature_1;
-  Feature feature_2;
-  List<String> features;
+  Feature feature_1 ;
+  Feature feature_2 ;
+  List<String> features ;
   String email;
   bool connected;
   String permanentLink;
-  TextEditingController token_controller_1;
-  TextEditingController token_controller_2;
 
   Data(){
+    application_id = "jewish-time";
     feature_1 = new Feature("jewish-time#1", "Jewish Time Premium");
     feature_2 = new Feature("jewish-time#2", "Custom background");
     features = [feature_1.feature_id, feature_2.feature_id];
-    token_controller_1 = new TextEditingController();
-    token_controller_2 = new TextEditingController();
+    init();
   }
+
+  Future<bool> init() async {
+
+    feature_1.activated = await _getFeatureActivationFromSharedPref(feature_1);
+    feature_2.activated = await _getFeatureActivationFromSharedPref(feature_2);
+    if (feature_1.activated) {
+      feature_1.token = await _getTokenFromSharedPref(feature_1);
+    }
+    if (feature_2.activated) {
+      feature_2.token = await _getTokenFromSharedPref(feature_2);
+    }
+
+    email = await _getEmailFromSharedPref();
+    connected = await _getConnectedFromSharedPref();
+    install_id =await  _getInstallIdFromSharedPref();
+    permanentLink = await _getPermanentLinkFromSharedPref();
+    return true;
+  }
+
+  String get getAppId {
+    return application_id;
+  }
+  String get getInstallId {
+    return install_id;
+  }
+  Feature get getFeature_1 {
+    return feature_1;
+  }
+  Feature get getFeature_2 {
+    return feature_2;
+  }
+  void activateFeature_1 ( String token) {
+     feature_1.activated = true;
+     feature_1.token = token;
+     _resetFeatureActivation(feature_1);
+     _resetToken(feature_1, token);
+     notifyListeners();
+  }
+  void activateFeature_2 ( String token) {
+    feature_2.activated = true;
+    feature_2.token = token;
+    _resetFeatureActivation(feature_2);
+    _resetToken(feature_2, token);
+    notifyListeners();
+  }
+  String get getEmail {
+    return email;
+  }
+  void setEmail ( String address) {
+    email = address;
+    _resetEmail(address);
+    notifyListeners();
+  }
+  bool get getConnected {
+    return connected;
+  }
+  void setConnected (bool connect) {
+    connected = connect;
+    _resetConnected(connect);
+    notifyListeners();
+  }
+  String get getPermanentLink {
+    return permanentLink;
+  }
+  void setPermanentLink (String link) {
+    permanentLink = link;
+    _resetPermanentLink(link);
+    notifyListeners();
+  }
+
+
 }
 
 Future<String> _getPermanentLinkFromSharedPref() async {
   final prefs = await SharedPreferences.getInstance();
   final link = prefs.getString('permanent_link');
-  if (link == null) {
-    return "";
-  }
   return link;
 }
 
@@ -85,22 +151,13 @@ Future<void> _resetConnected(bool connected) async {
   await prefs.setBool('connected', connected);
 }
 
-Future<String> _getAppIdFromSharedPref() async {
-  final prefs = await SharedPreferences.getInstance();
-  final appId = prefs.getString('application_id');
-  if (appId == null) {
-    await _resetAppId("jewish-time");
-    return "jewish-time";
-  }
-  return appId;
-}
 
 Future<String> _getInstallIdFromSharedPref() async {
   final prefs = await SharedPreferences.getInstance();
   String installId = prefs.getString('install_id');
   if (installId == null) {
-    await _resetInstallId();
-    installId = prefs.getString('install_id');
+    installId = premiumPayAPI.createInstallId();
+    await prefs.setString('install_id', installId);
   }
   return installId;
 }
@@ -110,7 +167,6 @@ Future<bool> _getFeatureActivationFromSharedPref(Feature value) async {
   bool activated = prefs.getBool(value.feature_id + "_activated");
   if (activated == null) {
     activated = false;
-    value.activated = false;
     await prefs.setBool(value.feature_id + "_activated", false);
   }
   return activated;
@@ -122,26 +178,15 @@ Future<String> _getTokenFromSharedPref(Feature value) async {
   return token;
 }
 
-Future<void> _resetInstallId() async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('install_id', premiumPayAPI.createInstallId());
-}
-
-Future<void> _resetAppId(String app) async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('application_id', app);
-}
 
 Future<void> _resetFeatureActivation(Feature value) async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setBool(value.feature_id + "_activated", true);
-  value.activated = true;
 }
 
 Future<void> _resetToken(Feature value, String token) async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setString(value.feature_id + "_token", token);
-  value.token = token;
 }
 
 void main() {
@@ -151,60 +196,29 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MultiProvider(
+        providers: [
+        ChangeNotifierProvider.value(
+        value: Data(),
+    ),
+    ],
+    child: MaterialApp(
       title: 'App Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
       home: DemoAccessPage(),
+    )
     );
   }
 }
 
-class DemoAccessPage extends StatefulWidget {
-  @override
-  _DemoAccessPageState createState() => _DemoAccessPageState();
-}
+class DemoAccessPage extends StatelessWidget {
 
-class _DemoAccessPageState extends State<DemoAccessPage> {
-
-  Data data;
-  Future<bool> initialisation;
-
-  @override
-  void initState() {
-
-    super.initState();
-    data = Data();
-    initialisation = init();
-  }
-
-  Future<bool> init() async {
-    data.feature_1.activated = await _getFeatureActivationFromSharedPref(data.feature_1);
-    data.feature_2.activated = await _getFeatureActivationFromSharedPref(data.feature_2);
-    if (data.feature_1.activated) {
-      data.feature_1.token = await _getTokenFromSharedPref(data.feature_1);
-      data.token_controller_1.text = data.feature_1.token;
-    }
-    if (data.feature_2.activated) {
-      data.feature_2.token = await _getTokenFromSharedPref(data.feature_2);
-      data.token_controller_2.text = data.feature_2.token;
-    }
-
-    data.email = await _getEmailFromSharedPref();
-    data.connected = await _getConnectedFromSharedPref();
-    data.application_id = await _getAppIdFromSharedPref();
-    data.install_id =await  _getInstallIdFromSharedPref();
-    data.permanentLink = await _getPermanentLinkFromSharedPref();
-    return true;
-  }
-
- void refresh() {
-    setState(() {});
-  }
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
         appBar: AppBar(
           centerTitle: true,
@@ -214,9 +228,11 @@ class _DemoAccessPageState extends State<DemoAccessPage> {
           ),
         ),
         body: FutureBuilder<bool>(
-            future: initialisation,
+            future: Provider.of<Data>(context).init(),
             builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
               if (snapshot.hasData) {
+                Feature feat_1 = Provider.of<Data>(context).getFeature_1;
+                Feature feat_2 = Provider.of<Data>(context).getFeature_2;
                 return Center(
                     child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -230,13 +246,13 @@ class _DemoAccessPageState extends State<DemoAccessPage> {
                                   width: MediaQuery.of(context).size.width * 0.6,
                                   child:
                                   Text(
-                                  data.feature_1.feature_name + " feature: ",
+                                  feat_1.feature_name + " feature: ",
                                   softWrap: true,
                                   maxLines: 3,
                                   style: TextStyle(
                                       color: Colors.blue[900], fontSize: 18),
                                 )),
-                                data.feature_1.activated
+                                feat_1.activated
                                     ? Icon(
                                   Icons.check_circle,
                                   color: Colors.green,
@@ -251,25 +267,12 @@ class _DemoAccessPageState extends State<DemoAccessPage> {
                                         fontStyle: FontStyle.italic,
                                         decoration: TextDecoration.underline),
                                   ),
-                                  onPressed: () async {
-                                    final dataBack = await Navigator.push<Object>(
+                                  onPressed: ()  {
+                                     Navigator.push<Object>(
                                       context,
                                       MaterialPageRoute<dynamic>(
-                                          builder: (context) => DemoConnectPage(
-                                              notifyParent: refresh,
-                                              data:data
-                                          )),
-                                    ) as Data;
-
-                                    data.application_id = dataBack.application_id;
-                                    data.install_id = dataBack.install_id;
-                                    data.feature_1 = dataBack.feature_1;
-                                    data.feature_2 = dataBack.feature_2;
-                                    data.features = dataBack.features;
-                                    data.email = dataBack.email;
-                                    data.connected = dataBack.connected;
-                                    data.token_controller_1 = dataBack.token_controller_1;
-                                    data.token_controller_2 = dataBack.token_controller_2;
+                                          builder: (context) => DemoConnectPage()),
+                                    );
                                   },
                                 )
                               ],
@@ -286,13 +289,13 @@ class _DemoAccessPageState extends State<DemoAccessPage> {
                           Container(
                             width: MediaQuery.of(context).size.width * 0.6,
                           child: Text(
-                            data.feature_2.feature_name + " feature: ",
+                            feat_2.feature_name + " feature: ",
                             softWrap: true,
                             maxLines: 3,
                             style: TextStyle(
                                 color: Colors.blue[900], fontSize: 18),
                           )),
-                          data.feature_2.activated
+                          feat_2.activated
                               ? Icon(
                                   Icons.check_circle,
                                   color: Colors.green,
@@ -307,25 +310,12 @@ class _DemoAccessPageState extends State<DemoAccessPage> {
                                   fontStyle: FontStyle.italic,
                                   decoration: TextDecoration.underline),
                             ),
-                            onPressed: () async {
-                              final dataBack = await Navigator.push<Object>(
+                            onPressed: ()  {
+                              Navigator.push<Object>(
                                 context,
                                 MaterialPageRoute<dynamic>(
-                                    builder: (context) => DemoConnectPage(
-                                        notifyParent: refresh,
-                                        data : data
-                                    )),
-                              ) as Data;
-
-                              data.application_id = dataBack.application_id;
-                              data.install_id = dataBack.install_id;
-                              data.feature_1 = dataBack.feature_1;
-                              data.feature_2 = dataBack.feature_2;
-                              data.features = dataBack.features;
-                              data.email = dataBack.email;
-                              data.connected = dataBack.connected;
-                              data.token_controller_1 = dataBack.token_controller_1;
-                              data.token_controller_2 = dataBack.token_controller_2;
+                                    builder: (context) => DemoConnectPage()),
+                              ) ;
                             },
                           )
                         ],
@@ -340,25 +330,12 @@ class _DemoAccessPageState extends State<DemoAccessPage> {
                                   fontStyle: FontStyle.italic,
                                   decoration: TextDecoration.underline),
                             ),
-                            onPressed: () async {
-                              final dataBack = await Navigator.push<Object>(
+                            onPressed: ()  {
+                              Navigator.push<Object>(
                                 context,
                                 MaterialPageRoute<dynamic>(
-                                    builder: (context) => DemoConnectPage(
-                                        notifyParent: refresh,
-                                        data : data
-                                    )),
-                              ) as Data;
-
-                              data.application_id = dataBack.application_id;
-                              data.install_id = dataBack.install_id;
-                              data.feature_1 = dataBack.feature_1;
-                              data.feature_2 = dataBack.feature_2;
-                              data.features = dataBack.features;
-                              data.email = dataBack.email;
-                              data.connected = dataBack.connected;
-                              data.token_controller_1 = dataBack.token_controller_1;
-                              data.token_controller_2 = dataBack.token_controller_2;
+                                    builder: (context) => DemoConnectPage()),
+                              );
                             },
                           )
 
@@ -372,13 +349,9 @@ class _DemoAccessPageState extends State<DemoAccessPage> {
 
 class DemoConnectPage extends StatefulWidget {
 
-  final Function() notifyParent;
-  final Data data;
-
 
   DemoConnectPage(
-      {Key key,
-      @required this.notifyParent, this.data})
+      {Key key})
       : super(key: key);
 
   @override
@@ -399,6 +372,8 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
   bool invalidToken_2;
   SyncResult syncResult ;
   ConnectResult connectResult;
+  TextEditingController token_controller_1;
+  TextEditingController token_controller_2;
 
   @override
   void initState() {
@@ -418,17 +393,31 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
  //   accountValidate = false;
     invalidToken_1 = false;
     invalidToken_2 = false;
+    token_controller_1 = new TextEditingController();
+    token_controller_2 = new TextEditingController();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.data.connected) email_controller.text = widget.data.email;
+    bool connected = Provider.of<Data>(context).getConnected;
+    String application_id = Provider.of<Data>(context).getAppId;
+    String install_id = Provider.of<Data>(context).getInstallId;
+    String email = Provider.of<Data>(context).getEmail;
+    Feature feat_1 = Provider.of<Data>(context).getFeature_1;
+    Feature feat_2 = Provider.of<Data>(context).getFeature_2;
+    String permanentLink = Provider.of<Data>(context).getPermanentLink;
+    List<String> features = [feat_1.feature_id, feat_2.feature_id];
+    email_controller.text = Provider.of<Data>(context).getEmail;
+    if(feat_1.activated){
+      token_controller_1.text =  feat_1.token;
+    }
+    if(feat_2.activated){
+      token_controller_2.text =  feat_2.token;
+    }
+
+
     return Scaffold(
       appBar: AppBar(
-        leading:  IconButton(
-            icon: new Icon(Icons.arrow_back),
-            onPressed: (){Navigator.pop(context,widget.data);}
-        ),
         title: Text(
           'Premium features',
           style: TextStyle(fontSize: 20),
@@ -443,7 +432,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
               height: 20,
             ),
             Visibility(
-                visible: !widget.data.connected,
+                visible: !connected,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -462,7 +451,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                 )),
             SizedBox(height: 20),
 
-            (widget.data.connected)?
+            (connected)?
 
             Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -483,7 +472,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                             height: 10,
                           ),
                           Text(
-                              "Your install ID: \n${widget.data.install_id}",
+                              "Your install ID: \n$install_id",
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                   fontSize: 18,
@@ -553,15 +542,14 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                                         ),
                                         onPressed: () {
                                           setState(() {
-                                            _resetConnected(false);
-                                            widget.data.connected = false;
+                                            Provider.of<Data>(context, listen: false).setConnected(false);
+                                            Provider.of<Data>(context, listen: false).setPermanentLink("");
                                             //  connectResult.status =
                                             //     ConnectStatus.NOT_CONNECTED;
                                             //  syncResult.status =
                                             //      SyncStatus.NOT_CONNECTED;
                                             msg = "";
-                                       //     accountValidate = false;
-                                            _resetPermanentLink("");
+
                                           });
                                         },
                                       )),
@@ -600,54 +588,50 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                                           msg = "";
                                         });
 
-                                         syncResult = await premiumPayAPI.syncRequest(widget.data.install_id);
-                                        widget.data.permanentLink =
-                                            syncResult.permanentLink;
-                                        _resetPermanentLink(syncResult.permanentLink);
+                                         syncResult = await premiumPayAPI.syncRequest(install_id,email);
+
+                                        Provider.of<Data>(context, listen: false).setPermanentLink(syncResult.permanentLink);
+
+                                      if(syncResult.tokens.isNotEmpty){
+
+                                      (syncResult.tokens.length == 1) ?
+                                      msg = syncResult.tokens.length.toString() + " token loaded.\n"
+                                          :
+                                      msg = syncResult.tokens.length.toString() + " tokens loaded.\n";
+
+                                      for (int i = 0; i < syncResult.tokens.length; i++) {
+
+                                      if (feat_1.feature_id == syncResult.tokens[i].featureId) {
+
+                                        Provider.of<Data>(context, listen: false).activateFeature_1(syncResult.tokens[i].token);
+                                      token_controller_1.text = feat_1.token;
+                                      }
+                                      if (feat_2.feature_id == syncResult.tokens[i].featureId) {
+
+                                        Provider.of<Data>(context, listen: false).activateFeature_2(syncResult.tokens[i].token);
+                                      token_controller_2.text = feat_2.token;
+                                      }
+                                      }
+                                      setState(() {
+                                      showIcon = false;
+                                      });
+                                      }
 
                                         switch(syncResult.status){
 
-                                          case SyncStatus.ACTIVATED_TOKEN :{
-
-                                            (syncResult.tokens.length == 1) ?
-                                            msg = syncResult.tokens.length.toString() + " token loaded."
-                                                :
-                                            msg = syncResult.tokens.length.toString() + " tokens loaded.";
-
-                                            for (int i = 0; i < syncResult.tokens.length; i++) {
-
-                                              if (widget.data.feature_1.feature_id == syncResult.tokens[i].featureId) {
-
-                                                _resetFeatureActivation(widget.data.feature_1);
-                                                _resetToken(widget.data.feature_1, syncResult.tokens[i].token);
-                                                widget.data.token_controller_1.text = widget.data.feature_1.token;
-                                              }
-                                              if (widget.data.feature_2.feature_id == syncResult.tokens[i].featureId) {
-
-                                                await _resetFeatureActivation(widget.data.feature_2);
-                                                await _resetToken(widget.data.feature_2, syncResult.tokens[i].token);
-                                                widget.data.token_controller_2.text = widget.data.feature_2.token;
-                                              }
-                                            }
-                                            setState(() {
-                                              showIcon = false;
-                                            });
-                                            widget.notifyParent();
-                                            break;
-                                          }
                                           case SyncStatus.INSTALLATION_LINKED : {
                                             setState(() {
                                               showIcon = false;
-                                              msg =
-                                              "The installation is linked but no feature has been added.";
+                                              msg = msg +
+                                              "The installation is linked to the account.";
                                             });
                                             break;
                                           }
                                           case SyncStatus.INSTALLATION_NOT_LINKED : {
                                             setState(() {
                                               showIcon = false;
-                                              msg =
-                                              "The installation need to be linked to an account.";
+                                              msg = msg +
+                                              "The installation is not linked to the account.";
                                             });
                                             break;
                                           }
@@ -674,15 +658,16 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                               padding:
                               EdgeInsets.only(right: 12, left: 10),
                               child: Text(msg,
+                                  textAlign: TextAlign.center,
                                   style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.normal,
                                       color: ((syncResult != null &&  syncResult.status ==
-                                          SyncStatus.INSTALLATION_NOT_LINKED) || ( connectResult != null && connectResult.status == ConnectStatus.NEED_TO_VERIFY_EMAIL  ))
+                                          SyncStatus.INSTALLATION_NOT_LINKED) || ( connectResult != null && connectResult.status != ConnectStatus.SUCCESSFUL_CONNECT  ))
                                           ? Colors.red
                                           : Colors.green))),
                           Visibility(
-                              visible: (widget.data.permanentLink != ""),
+                              visible: (permanentLink != null),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -696,7 +681,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                                           fontSize: 18)),
                                   FlatButton(
                                     onPressed: () async {
-                                      String url = widget.data.permanentLink;
+                                      String url = permanentLink;
                                       if (await canLaunch(url)) {
                                         await launch(url);
                                       } else {
@@ -737,7 +722,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                               height: 10,
                             ),
                                       Text(
-                                        "Your install ID: \n${widget.data.install_id}",
+                                        "Your install ID: \n${install_id}",
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
                                             fontSize: 18,
@@ -918,15 +903,13 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                                             setState(() {
                                               showIcon = true;
                                             });
-                                            widget.data.email =
-                                                email_controller.text;
-                                            _resetEmail(email_controller.text);
+                                            Provider.of<Data>(context, listen: false).setEmail(email_controller.text);
                                             Install install = premiumPayAPI.createInstall(
-                                                await widget.data.install_id,
-                                                await widget.data.application_id,
-                                                widget.data.features);
+                                                install_id,
+                                                 application_id,
+                                                features);
                                              connectResult =
-                                                await premiumPayAPI.connectRequest(install, widget.data.email,
+                                                await premiumPayAPI.connectRequest(install, email,
                                                     resendEmail: resend_email,
                                                     acceptPromoOffers: accept_promo_offers);
                                             setState(() {
@@ -935,8 +918,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                                             switch(connectResult.status){
                                               case ConnectStatus.NEED_TO_VERIFY_EMAIL:{
                                                 setState(() {
-                                                  widget.data.connected = true;
-                                                  _resetConnected(true);
+                                                  Provider.of<Data>(context, listen: false).setConnected(true);
                                                   msg =
                                                   "Check your email and click on the link provided to link your installation.";
                                                 });
@@ -944,9 +926,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                                               }
                                               case ConnectStatus.SUCCESSFUL_CONNECT: {
                                                 setState(() {
-                                              //    accountValidate = true;
-                                                  widget.data.connected = true;
-                                                  _resetConnected(true);
+                                                  Provider.of<Data>(context, listen: false).setConnected(true);
                                                 });
                                                 break;
                                               }
@@ -994,7 +974,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
             SizedBox(
               height: 20,
             ),
-            Text(widget.data.feature_1.feature_name,
+            Text(feat_1.feature_name,
                 style:
                 TextStyle(color: Colors.blue[900], fontSize: 18)),
             SizedBox(
@@ -1009,32 +989,24 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                     width: MediaQuery.of(context).size.width * 0.75,
                     decoration: BoxDecoration(
                       border: new Border.all(color: Colors.blue[600]),
-                      color: widget.data.feature_1.activated
+                      color: feat_1.activated
                           ? Colors.grey
                           : Colors.white,
                     ),
                     child: TextField(
-                      controller: widget.data.token_controller_1,
-                      readOnly: widget.data.feature_1.activated,
+                      controller: token_controller_1,
+                      readOnly: feat_1.activated,
                       onEditingComplete: () async {
                         bool verified =
-                        widget.data.token_controller_1.text.length == 96
-                            ? premiumPayAPI.verifyToken(await widget.data.install_id, widget.data.feature_1.feature_id, widget.data.token_controller_1.text)
-                            : false;
+                        premiumPayAPI.checkTokenValidFormat(token_controller_1.text) &&
+                             premiumPayAPI.verifyToken(install_id, feat_1.feature_id, token_controller_1.text);
                         if (verified) {
-                          setState(() {
-                            widget.data.feature_1.activated = true;
-                            _resetFeatureActivation(widget.data.feature_1);
-                            widget.data.feature_1.token =
-                                widget.data.token_controller_1.text;
-                            _resetToken(widget.data.feature_1,
-                                widget.data.token_controller_1.text);
-                          });
+                            Provider.of<Data>(context, listen: false).activateFeature_1(token_controller_1.text);
+
                         } else {
                           setState(() {
                             invalidToken_1 = true;
                           });
-                          widget.notifyParent();
                         }
                       },
                       decoration: InputDecoration(
@@ -1057,23 +1029,14 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                     color: Colors.blue[900],
                     onPressed: () async {
                       bool verified =
-                      widget.data.token_controller_1.text.length == 96
-                          ? premiumPayAPI.verifyToken(await widget.data.install_id, widget.data.feature_1.feature_id, widget.data.token_controller_1.text)
-                          : false;
+                      premiumPayAPI.checkTokenValidFormat(token_controller_1.text) &&
+                       premiumPayAPI.verifyToken(install_id, feat_1.feature_id, token_controller_1.text);
                       if (verified) {
-                        setState(() {
-                          widget.data.feature_1.activated = true;
-                          _resetFeatureActivation(widget.data.feature_1);
-                          widget.data.feature_1.token =
-                              widget.data.token_controller_1.text;
-                          _resetToken(widget.data.feature_1,
-                              widget.data.token_controller_1.text);
-                        });
+                        Provider.of<Data>(context, listen: false).activateFeature_1(token_controller_1.text);
                       } else {
                         setState(() {
                           invalidToken_1 = true;
                         });
-                        widget.notifyParent();
                       }
                     },
                   )
@@ -1082,7 +1045,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
               height: 10,
             ),
             Visibility(
-                visible: widget.data.feature_1.activated,
+                visible: feat_1.activated,
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -1128,7 +1091,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
             SizedBox(
               height: 10,
             ),
-            Text(widget.data.feature_2.feature_name,
+            Text(feat_2.feature_name,
                 style:
                 TextStyle(color: Colors.blue[900], fontSize: 18)),
             SizedBox(
@@ -1143,28 +1106,19 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                     width: MediaQuery.of(context).size.width * 0.75,
                     decoration: BoxDecoration(
                       border: new Border.all(color: Colors.blue[600]),
-                      color: widget.data.feature_2.activated
+                      color: feat_2.activated
                           ? Colors.grey
                           : Colors.white,
                     ),
                     child: TextField(
-                      controller: widget.data.token_controller_2,
-                      readOnly: widget.data.feature_2.activated,
+                      controller: token_controller_2,
+                      readOnly: feat_2.activated,
                       onEditingComplete: () async {
                         bool verified =
-                        premiumPayAPI.checkTokenValidFormat(widget.data.token_controller_2.text)
-                            ? premiumPayAPI.verifyToken(await widget.data.install_id, widget.data.feature_2.feature_id, widget.data.token_controller_2.text)
-                            : false;
+                        premiumPayAPI.checkTokenValidFormat(token_controller_2.text)
+                            && premiumPayAPI.verifyToken(install_id, feat_2.feature_id, token_controller_2.text);
                         if (verified) {
-                          setState(() {
-                            widget.data.feature_2.activated = true;
-                            _resetFeatureActivation(widget.data.feature_2);
-                            widget.data.feature_2.token =
-                                widget.data.token_controller_2.text;
-                            _resetToken(widget.data.feature_2,
-                                widget.data.token_controller_2.text);
-                          });
-                          widget.notifyParent();
+                          Provider.of<Data>(context, listen: false).activateFeature_2(token_controller_2.text);
                         } else {
                           setState(() {
                             invalidToken_2 = true;
@@ -1191,21 +1145,13 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
                     color: Colors.blue[900],
                     onPressed: () async {
                       bool verified =
-                      premiumPayAPI.checkTokenValidFormat(widget.data.token_controller_2.text)
-                          ? premiumPayAPI.verifyToken(await widget.data.install_id,
-                          widget.data.feature_2.feature_id,
-                          widget.data.token_controller_2.text)
-                          : false;
+                      premiumPayAPI.checkTokenValidFormat(token_controller_2.text)
+                          && premiumPayAPI.verifyToken(install_id,
+                          feat_2.feature_id,
+                          token_controller_2.text);
                       if (verified) {
-                        setState(() {
-                          widget.data.feature_2.activated = true;
-                          _resetFeatureActivation(widget.data.feature_2);
-                          widget.data.feature_2.token =
-                              widget.data.token_controller_2.text;
-                          _resetToken(widget.data.feature_2,
-                              widget.data.token_controller_2.text);
-                        });
-                        widget.notifyParent();
+                        Provider.of<Data>(context, listen: false).activateFeature_2(token_controller_2.text);
+
                       } else {
                         setState(() {
                           invalidToken_2 = true;
@@ -1218,7 +1164,7 @@ class _DemoConnectPageState extends State<DemoConnectPage> {
               height: 10,
             ),
             Visibility(
-                visible: widget.data.feature_2.activated,
+                visible: feat_2.activated,
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,

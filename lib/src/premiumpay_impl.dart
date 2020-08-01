@@ -116,7 +116,8 @@ class  _PremiumPayAPI implements PremiumPayAPI {
         status= ConnectStatus.INVALID_APPLICATION_ID;
         break;
       }
-      default: status = ConnectStatus.CONNEXION_FAILURE;
+      default:
+        throw Exception("incorrect ConnectResult result value: ${responseBody['result'].toString()}");
     }
     ConnectResult connectResult = ConnectResultImpl._internal(status);
     return connectResult;
@@ -128,36 +129,33 @@ class  _PremiumPayAPI implements PremiumPayAPI {
         return SyncStatus.INSTALLATION_NOT_LINKED;
       case "INSTALLATION_LINKED":
         return SyncStatus.INSTALLATION_LINKED;
-      case "ACTIVATED_TOKEN":
-        return SyncStatus.ACTIVATED_TOKEN;
       default:
         throw Exception("incorrect SyncStatus value: $str");
     }
   }
 
   @override
-  Future<SyncResult> syncRequest(String install_id) async {
+  Future<SyncResult> syncRequest(String install_id, email) async {
     String installIdEncoded = Uri.encodeComponent(install_id);
+    String emailEncoded = Uri.encodeComponent(email);
     Map<String, String> headers = {"Content-type": "application/json"};
     String url =
-        "https://api.premiumpay.site/sync/?install_id=$installIdEncoded";
+        "https://api.premiumpay.site/sync/?install_id=$installIdEncoded&email=$emailEncoded";
     http.Response response = await http.get(url, headers: headers);
     dynamic responseBody = jsonDecode(response.body);
     List<Token> list = List<Token>();
 
     SyncStatus status = _decode(responseBody["result"].toString());
 
-    if (status == SyncStatus.ACTIVATED_TOKEN) {
-
-      int len = int.parse(responseBody["tokens"].toList().length.toString());
+      int len = responseBody["tokens"].toList().length;
       for(int i=0; i< len ;i++) {
 
         Token token = TokenImpl._internal(responseBody["tokens"][i]["feature_id"].toString(), responseBody["tokens"][i]["token"].toString());
         list.add(token);
 
-      }}
+      }
 
-    SyncResult syncResult = SyncResultImpl._internal(status, list, responseBody["permanentLink"].toString());
+    SyncResult syncResult = SyncResultImpl._internal(status, list, responseBody["permanentLink"]);
     return syncResult;
   }
 
