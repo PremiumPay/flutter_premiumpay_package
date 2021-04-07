@@ -10,6 +10,7 @@ abstract  class Install {
   /// list of all the application features present in the installation,
   /// each feature is represented by its identifier as defined in premiumpay.site
   List<String> get features;
+
 }
 
 enum ConnectStatus {
@@ -22,6 +23,7 @@ enum ConnectStatus {
 
   /// connection with an invalid application id
   INVALID_APPLICATION_ID
+
 }
 
 /// Result of connection request
@@ -29,6 +31,7 @@ abstract class ConnectResult {
 
   /// state of the installation considering its linking to an account
   ConnectStatus get status;
+
 }
 
 /// A token associated to a feature
@@ -41,6 +44,7 @@ abstract class Token {
 
   /// token acquired after activation of the feature in premiumpay.site
   String get token;
+
 }
 
 /// Result of sync request
@@ -81,7 +85,7 @@ abstract class PremiumPayAPI {
   ///
   ///  [installId] is the installation identifier created by [createInstallId].
   ///  [applicationId] is the application identifier as defined in premiumpay.site.
-  ///  [features] is the list of all the features existing in the app installation, each feature is represented by its id as defined in premiumpay.site.
+  ///  [features] is the list of all the features existing in the app installation, each feature is represented by its feature_code as defined in premiumpay.site.
   ///
   Install createInstall(String installId, String applicationId, List<String> features);
 

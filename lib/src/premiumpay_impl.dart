@@ -1,6 +1,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:convert/convert.dart';
 import 'package:uuid/uuid.dart';
 import 'package:http/http.dart' as http;
@@ -143,7 +144,7 @@ class  _PremiumPayAPI implements PremiumPayAPI {
         "https://api.premiumpay.site/sync/?install_id=$installIdEncoded&email=$emailEncoded";
     http.Response response = await http.get(url, headers: headers);
     dynamic responseBody = jsonDecode(response.body);
-    List<Token> list = List<Token>();
+    List<Token> list = [];
 
     SyncStatus status = _decode(responseBody["result"].toString());
 
@@ -205,9 +206,9 @@ class _PremiumPayCrypto {
     String message = msg;
     List<int> messageBytes = utf8.encode(message);
     var p = ASN1Parser(signatureToken);
-    ASN1Sequence seq1 = p.nextObject();
-    ASN1Integer s1Int =seq1.elements[0];
-    ASN1Integer s2Int = seq1.elements[1];
+    ASN1Sequence seq1 = p.nextObject() as ASN1Sequence;
+    ASN1Integer s1Int =seq1.elements[0]  as ASN1Integer;
+    ASN1Integer s2Int = seq1.elements[1] as ASN1Integer;
     var s1IntHex = hex.encode(s1Int.contentBytes());
     var s2IntHex = hex.encode(s2Int.contentBytes());
     if ((s1Int.contentBytes().length == 33) && s1IntHex.startsWith("00")) {
@@ -231,7 +232,7 @@ class _PremiumPayCrypto {
     var signature = pointy.ECSignature(r, s);
     var signer = pointy.Signer('SHA-256/ECDSA');
     signer.init(false, pointy.PublicKeyParameter(_publicKey));
-    return signer.verifySignature(messageBytes, signature);
+    return signer.verifySignature(Uint8List.fromList(messageBytes), signature);
   }
 
   static pointy.ECPublicKey publicKeyfromString(String publicKeyString) {
