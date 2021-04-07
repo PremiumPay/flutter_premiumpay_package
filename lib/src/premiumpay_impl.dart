@@ -99,7 +99,7 @@ class  _PremiumPayAPI implements PremiumPayAPI {
     Map<String, String> headers = {"Content-type": "application/json"};
     ConnectStatus status;
     http.Response response =
-    await http.post(connectUrl, headers: headers, body: jsonBody);
+    await http.post(Uri.parse(connectUrl), headers: headers, body: jsonBody);
     dynamic responseBody = jsonDecode(response.body);
     switch(responseBody['result'].toString()){
 
@@ -142,7 +142,7 @@ class  _PremiumPayAPI implements PremiumPayAPI {
     Map<String, String> headers = {"Content-type": "application/json"};
     String url =
         "https://api.premiumpay.site/sync/?install_id=$installIdEncoded&email=$emailEncoded";
-    http.Response response = await http.get(url, headers: headers);
+    http.Response response = await http.get(Uri.parse(url), headers: headers);
     dynamic responseBody = jsonDecode(response.body);
     List<Token> list = [];
 
@@ -209,12 +209,12 @@ class _PremiumPayCrypto {
     ASN1Sequence seq1 = p.nextObject() as ASN1Sequence;
     ASN1Integer s1Int =seq1.elements[0]  as ASN1Integer;
     ASN1Integer s2Int = seq1.elements[1] as ASN1Integer;
-    var s1IntHex = hex.encode(s1Int.contentBytes());
-    var s2IntHex = hex.encode(s2Int.contentBytes());
-    if ((s1Int.contentBytes().length == 33) && s1IntHex.startsWith("00")) {
+    var s1IntHex = hex.encode(s1Int.contentBytes() as List<int>);
+    var s2IntHex = hex.encode(s2Int.contentBytes() as List<int>);
+    if (((s1Int.contentBytes() as List<int>).length == 33) && s1IntHex.startsWith("00")) {
       s1IntHex = s1IntHex.substring(2);
     }
-    if ((s2Int.contentBytes().length == 33) && s2IntHex.startsWith("00")) {
+    if (((s2Int.contentBytes() as List<int>).length == 33) && s2IntHex.startsWith("00")) {
       s2IntHex = s2IntHex.substring(2);
     }
 
