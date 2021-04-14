@@ -1,3 +1,7 @@
+## [0.2.4] - release (beta)
+
+* Fix token verification
+
 ## [0.2.3] - release (beta)
 
 * Fix format for pub.dev
