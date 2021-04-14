@@ -135,6 +135,13 @@ void main() {
           premiumPayAPI.verifyToken(installId, featureId_2, token);
       expect(tokenValid , isFalse);
     });
+
+    test('Verify Token v3', () {
+      String token = "MEUCIQCnAhiuSmVAUEcqXEsmr2RGtTDE9vmAsPsJCTmRzVqO3QIgBNK/5E6jHq8JMzOsqm0Em0SA1PevlOBai6h/UYkHYTA=";
+      bool tokenValid = premiumPayAPI.verifyToken(installId, featureId_2, token);
+      expect(tokenValid , isFalse);
+    });
+
   }
 
 

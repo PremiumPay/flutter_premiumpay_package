@@ -87,10 +87,8 @@ class  _PremiumPayAPI implements PremiumPayAPI {
     return InstallImpl._internal(installId, applicationId, features);
   }
 
-  @override
   Token createToken(String featureId, String token) {
     return TokenImpl._internal(featureId, token);
-
   }
 
   @override
@@ -139,8 +137,8 @@ class  _PremiumPayAPI implements PremiumPayAPI {
   }
 
   @override
-  Future<SyncResult> syncRequest(String install_id, email, {String apiKey = TESTING_AP_KEY}) async {
-    String installIdEncoded = Uri.encodeComponent(install_id);
+  Future<SyncResult> syncRequest(String installId, email, {String apiKey = TESTING_AP_KEY}) async {
+    String installIdEncoded = Uri.encodeComponent(installId);
     String emailEncoded = Uri.encodeComponent(email);
     Map<String, String> headers = {"Content-type": "application/json", 'x-api-key' : apiKey};
 
@@ -173,7 +171,8 @@ class  _PremiumPayAPI implements PremiumPayAPI {
     var signatureToken = base64Decode(token);
     var p = ASN1Parser(signatureToken);
     try{
-      ASN1Object seq1 = p.nextObject();
+      //ASN1Object seq1 =
+      p.nextObject();
     }catch(e){
       return false;
     }
@@ -190,7 +189,7 @@ class  _PremiumPayAPI implements PremiumPayAPI {
 
   @override
   bool verifyToken(String installId, String featureId, String token) {
-    return true;// _PremiumPayCrypto.tokenVerification(featureId + '@' + installId, token);
+    return _PremiumPayCrypto.tokenVerification(featureId + '@' + installId, token);
   }
 
 }
@@ -239,10 +238,10 @@ class _PremiumPayCrypto {
     return signer.verifySignature(Uint8List.fromList(messageBytes), signature);
   }
 
-  static pointy.ECPublicKey publicKeyfromString(String publicKeyString) {
-    var Q = secp256k1.curve.decodePoint(base64Decode(publicKeyString));
-    return pointy.ECPublicKey(Q, secp256k1);
-  }
+  // static pointy.ECPublicKey publicKeyfromString(String publicKeyString) {
+  //   var Q = secp256k1.curve.decodePoint(base64Decode(publicKeyString));
+  //   return pointy.ECPublicKey(Q, secp256k1);
+  // }
 
   static pointy.ECPublicKey fromPoint(BigInt x, BigInt y) {
     var c = secp256k1.curve;
