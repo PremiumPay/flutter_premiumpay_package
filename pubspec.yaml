@@ -1,8 +1,10 @@
 name: flutter_premiumpay_package
-description: Flutter package to add premium features in app using premiumpay.site
+description: Flutter package to add premium features in app using PremiumPay platform
 version: 0.2.1
-author: Frank Afriat and Sarah Coriat <support@premiumpay.site>
-homepage: https://gitlab.com/solusoft/premiumpay_package
+homepage: https://premiumpay.site
+repository: https://github.com/PremiumPay/flutter_premiumpay_package
+documentation: https://premiumpay.site/api/doc/index.html
+
 
 environment:
   sdk: ">=2.12.2 <3.0.0"
