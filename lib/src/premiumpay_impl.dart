@@ -92,11 +92,14 @@ class  _PremiumPayAPI implements PremiumPayAPI {
   }
 
   @override
-  Future<ConnectResult> connectRequest(Install install, String email, { bool resendEmail = false, bool acceptPromoOffers = false, String lang = 'en'}) async {
+  Future<ConnectResult> connectRequest(Install install, String email, { bool resendEmail = false, bool acceptPromoOffers = false, String lang = 'en', String? apiKey}) async {
     String connectUrl = "https://api.premiumpay.site/connect";
     String jsonBody =
         '{ "email": "$email", "install_id": "${install.installId}", "application_id":"${install.applicationId}" , "resend_email": $resendEmail , "features": ${install.features}, "accept_promo_offers": "$acceptPromoOffers","from":"application"}';
     Map<String, String> headers = {"Content-type": "application/json"};
+    if (apiKey != null) {
+      headers['x-api-key'] = apiKey;
+    }
     ConnectStatus status;
     http.Response response =
     await http.post(Uri.parse(connectUrl), headers: headers, body: jsonBody);
@@ -136,10 +139,14 @@ class  _PremiumPayAPI implements PremiumPayAPI {
   }
 
   @override
-  Future<SyncResult> syncRequest(String install_id, email) async {
+  Future<SyncResult> syncRequest(String install_id, email, {String? apiKey}) async {
     String installIdEncoded = Uri.encodeComponent(install_id);
     String emailEncoded = Uri.encodeComponent(email);
     Map<String, String> headers = {"Content-type": "application/json"};
+    if (apiKey != null) {
+      headers['x-api-key'] = apiKey;
+    }
+
     String url =
         "https://api.premiumpay.site/sync/?install_id=$installIdEncoded&email=$emailEncoded";
     http.Response response = await http.get(Uri.parse(url), headers: headers);

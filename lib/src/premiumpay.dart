@@ -106,11 +106,12 @@ abstract class PremiumPayAPI {
   ///  [resendEmail] is optional and set to false by default, it's the possibility to resend the email of linking if we lost the previous one.
   ///  [acceptPromoOffers] is optional and set to false by default, it's the possibility to receive promotional offers of the vendor's applications by email.
   ///  [lang] is optional and set to english by default, it defines the language to use in website.
+  ///  [apiKey] is optional but required for premium usage plan (ask PremiumPay Support)
 
   /// Returns [ConnectStatus.SUCCESSFUL_CONNECT] in [ConnectResult.status] if the installation has been linked to the account following email validation.
   /// Returns [ConnectStatus.NEED_TO_VERIFY_EMAIL] in [ConnectResult.status] if the user didn't click on the link in the email.
   /// Returns [ConnectStatus.INVALID_APPLICATION_ID] in [ConnectResult.status]  if [install] contains an invalid app id.
-  Future<ConnectResult> connectRequest(Install install, String email, { bool resendEmail = false, bool acceptPromoOffers = false, String lang = 'en'});
+  Future<ConnectResult> connectRequest(Install install, String email, { bool resendEmail = false, bool acceptPromoOffers = false, String lang = 'en', String? apiKey});
 
 
   /// Request of synchronisation to update the installation activated features.
@@ -124,12 +125,13 @@ abstract class PremiumPayAPI {
   ///
   ///  [installId] is the installation identifier created by [createInstallId]
   ///  [email] is the address to which the installation is connected
+  ///  [apiKey] is optional but required for premium usage plan (ask PremiumPay Support)
   ///
   /// Returns [SyncStatus.INSTALLATION_NOT_LINKED] in [SyncResult.status] if the installation is not linked to the account.
   /// Returns [SyncStatus.INSTALLATION_LINKED] in [SyncResult.status] if the installation has been linked to the account,
   ///   and a link in [SyncResult.permanentLink] to access directly the website logged in.
   /// In all cases, the installation acquired tokens list is returned in [SyncResult.tokens].
-  Future<SyncResult> syncRequest(String installId, String email);
+  Future<SyncResult> syncRequest(String installId, String email, {String? apiKey});
 
   /// Check the validity of the token format.
   ///
