@@ -1,6 +1,5 @@
-
 /// Represents an application installation
-abstract  class Install {
+abstract class Install {
   /// unique installation identifier
   String get installId;
 
@@ -10,11 +9,9 @@ abstract  class Install {
   /// list of all the application features present in the installation,
   /// each feature is represented by its identifier as defined in premiumpay.site
   List<String> get features;
-
 }
 
 enum ConnectStatus {
-
   /// installation linked to a valid account
   SUCCESSFUL_CONNECT,
 
@@ -23,33 +20,27 @@ enum ConnectStatus {
 
   /// connection with an invalid application id
   INVALID_APPLICATION_ID
-
 }
 
 /// Result of connection request
 abstract class ConnectResult {
-
   /// state of the installation considering its linking to an account
   ConnectStatus get status;
-
 }
 
 /// A token associated to a feature
 ///
 /// the token is used to unblock the feature in a specific installation
 abstract class Token {
-
   /// feature identifier as defined in premiumpay.site
-  String get featureId ;
+  String get featureId;
 
   /// token acquired after activation of the feature in premiumpay.site
   String get token;
-
 }
 
 /// Result of sync request
 abstract class SyncResult {
-
   /// state of the installation considering the activation of its features
   SyncStatus get status;
 
@@ -60,9 +51,7 @@ abstract class SyncResult {
   String? get permanentLink;
 }
 
-
 enum SyncStatus {
-
   /// the installation has been linked to an account but no features have been activated
   INSTALLATION_LINKED,
 
@@ -71,7 +60,6 @@ enum SyncStatus {
 }
 
 abstract class PremiumPayAPI {
-
   /// Create a new random installId.
   ///
   /// This method executes locally.
@@ -87,8 +75,8 @@ abstract class PremiumPayAPI {
   ///  [applicationId] is the application identifier as defined in premiumpay.site.
   ///  [features] is the list of all the features existing in the app installation, each feature is represented by its feature_code as defined in premiumpay.site.
   ///
-  Install createInstall(String installId, String applicationId, List<String> features);
-
+  Install createInstall(
+      String installId, String applicationId, List<String> features);
 
   /// Method called in order to link the installation to an account.
   ///
@@ -111,8 +99,11 @@ abstract class PremiumPayAPI {
   /// Returns [ConnectStatus.SUCCESSFUL_CONNECT] in [ConnectResult.status] if the installation has been linked to the account following email validation.
   /// Returns [ConnectStatus.NEED_TO_VERIFY_EMAIL] in [ConnectResult.status] if the user didn't click on the link in the email.
   /// Returns [ConnectStatus.INVALID_APPLICATION_ID] in [ConnectResult.status]  if [install] contains an invalid app id.
-  Future<ConnectResult> connectRequest(Install install, String email, { bool resendEmail = false, bool acceptPromoOffers = false, String lang = 'en', String apiKey});
-
+  Future<ConnectResult> connectRequest(Install install, String email,
+      {bool resendEmail = false,
+      bool acceptPromoOffers = false,
+      String lang = 'en',
+      String apiKey});
 
   /// Request of synchronisation to update the installation activated features.
   ///
@@ -131,7 +122,8 @@ abstract class PremiumPayAPI {
   /// Returns [SyncStatus.INSTALLATION_LINKED] in [SyncResult.status] if the installation has been linked to the account,
   ///   and a link in [SyncResult.permanentLink] to access directly the website logged in.
   /// In all cases, the installation acquired tokens list is returned in [SyncResult.tokens].
-  Future<SyncResult> syncRequest(String installId, String email, {String apiKey});
+  Future<SyncResult> syncRequest(String installId, String email,
+      {String apiKey});
 
   /// Check the validity of the token format.
   ///
@@ -157,6 +149,4 @@ abstract class PremiumPayAPI {
   /// This method executes locally.
   /// Does the same like [verifyToken] method.
   bool verifyReceivedToken(String installId, Token token);
-
-
 }
