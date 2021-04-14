@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -9,12 +8,11 @@ import 'package:asn1lib/asn1lib.dart';
 import 'package:pointycastle/export.dart' as pointy;
 import 'premiumpay.dart';
 
-const TESTING_AP_KEY =  'y05U4a1SVb6nvuVL76Vec2r3tX0MsVDi6Och5h8u';
+const TESTING_AP_KEY = 'y05U4a1SVb6nvuVL76Vec2r3tX0MsVDi6Och5h8u';
 
-PremiumPayAPI premiumPayAPI =  _PremiumPayAPI();
+PremiumPayAPI premiumPayAPI = _PremiumPayAPI();
 
 class ConnectResultImpl implements ConnectResult {
-
   final ConnectStatus status;
 
   ConnectResultImpl._internal(this.status);
@@ -23,8 +21,6 @@ class ConnectResultImpl implements ConnectResult {
   String toString() {
     return json.encode({'status': '$status'});
   }
-
-
 }
 
 class TokenImpl implements Token {
@@ -36,28 +32,31 @@ class TokenImpl implements Token {
   @override
   String toString() {
     return json.encode({
-      'featureId' : featureId,
-      'token' : token,
+      'featureId': featureId,
+      'token': token,
     });
   }
-
 }
 
-class SyncResultImpl  implements SyncResult {
-
+class SyncResultImpl implements SyncResult {
   final SyncStatus status;
   final List<Token> tokens;
   final String? permanentLink;
 
   @override
   String toString() {
-    return json.encode({'status': '$status' , 'tokens': '$tokens', 'permanentLink': permanentLink});
+    return json.encode({
+      'status': '$status',
+      'tokens': '$tokens',
+      'permanentLink': permanentLink
+    });
   }
 
-  SyncResultImpl._internal(this.status, List<Token> tokens, this.permanentLink): tokens = List.unmodifiable(tokens);
+  SyncResultImpl._internal(this.status, List<Token> tokens, this.permanentLink)
+      : tokens = List.unmodifiable(tokens);
 }
 
-class InstallImpl implements Install  {
+class InstallImpl implements Install {
   final String installId;
   final String applicationId;
   final List<String> features;
@@ -65,17 +64,16 @@ class InstallImpl implements Install  {
   @override
   String toString() {
     return json.encode({
-      "installId" : installId,
-      "applicationId" : applicationId,
-      "features" : features
+      "installId": installId,
+      "applicationId": applicationId,
+      "features": features
     });
   }
 
   InstallImpl._internal(this.installId, this.applicationId, this.features);
 }
 
-class  _PremiumPayAPI implements PremiumPayAPI {
-
+class _PremiumPayAPI implements PremiumPayAPI {
   @override
   String createInstallId() {
     var uuid = Uuid();
@@ -83,7 +81,8 @@ class  _PremiumPayAPI implements PremiumPayAPI {
   }
 
   @override
-  Install createInstall(String installId, String applicationId, List<String> features) {
+  Install createInstall(
+      String installId, String applicationId, List<String> features) {
     return InstallImpl._internal(installId, applicationId, features);
   }
 
@@ -92,34 +91,49 @@ class  _PremiumPayAPI implements PremiumPayAPI {
   }
 
   @override
-  Future<ConnectResult> connectRequest(Install install, String email, { bool resendEmail = false, bool acceptPromoOffers = false, String lang = 'en', String apiKey = TESTING_AP_KEY}) async {
+  Future<ConnectResult> connectRequest(Install install, String email,
+      {bool resendEmail = false,
+      bool acceptPromoOffers = false,
+      String lang = 'en',
+      String apiKey = TESTING_AP_KEY}) async {
     String connectUrl = "https://api.premiumpay.site/connect";
-    Map jsonBodyMap =
-        { "email": email, "install_id": install.installId, "application_id": install.applicationId, "resend_email": resendEmail , "features": install.features, "accept_promo_offers": "$acceptPromoOffers","from":"application"};
-    String jsonBody =  json.encode(jsonBodyMap);
-    Map<String, String> headers = {"Content-type": "application/json", 'x-api-key' : apiKey};
+    Map jsonBodyMap = {
+      "email": email,
+      "install_id": install.installId,
+      "application_id": install.applicationId,
+      "resend_email": resendEmail,
+      "features": install.features,
+      "accept_promo_offers": "$acceptPromoOffers",
+      "from": "application"
+    };
+    String jsonBody = json.encode(jsonBodyMap);
+    Map<String, String> headers = {
+      "Content-type": "application/json",
+      'x-api-key': apiKey
+    };
     ConnectStatus status;
-    http.Response response =
-    await http.post(Uri.parse(connectUrl), headers: headers, body: jsonBody);
+    http.Response response = await http.post(Uri.parse(connectUrl),
+        headers: headers, body: jsonBody);
     dynamic responseBody = jsonDecode(response.body);
-    switch(responseBody['result'].toString()){
-
-      case 'ok': {
-        if( responseBody['verified'].toString().toLowerCase()== 'true'){
-          status = ConnectStatus.SUCCESSFUL_CONNECT;
+    switch (responseBody['result'].toString()) {
+      case 'ok':
+        {
+          if (responseBody['verified'].toString().toLowerCase() == 'true') {
+            status = ConnectStatus.SUCCESSFUL_CONNECT;
+          } else {
+            status = ConnectStatus.NEED_TO_VERIFY_EMAIL;
+          }
+          break;
         }
-        else{
-          status = ConnectStatus.NEED_TO_VERIFY_EMAIL;
-        }
-        break;
-      }
 
-      case "invalid_app_id": {
-        status= ConnectStatus.INVALID_APPLICATION_ID;
-        break;
-      }
+      case "invalid_app_id":
+        {
+          status = ConnectStatus.INVALID_APPLICATION_ID;
+          break;
+        }
       default:
-        throw Exception("incorrect ConnectResult result value: ${responseBody['result'].toString()}");
+        throw Exception(
+            "incorrect ConnectResult result value: ${responseBody['result'].toString()}");
     }
     ConnectResult connectResult = ConnectResultImpl._internal(status);
     return connectResult;
@@ -137,10 +151,14 @@ class  _PremiumPayAPI implements PremiumPayAPI {
   }
 
   @override
-  Future<SyncResult> syncRequest(String installId, email, {String apiKey = TESTING_AP_KEY}) async {
+  Future<SyncResult> syncRequest(String installId, email,
+      {String apiKey = TESTING_AP_KEY}) async {
     String installIdEncoded = Uri.encodeComponent(installId);
     String emailEncoded = Uri.encodeComponent(email);
-    Map<String, String> headers = {"Content-type": "application/json", 'x-api-key' : apiKey};
+    Map<String, String> headers = {
+      "Content-type": "application/json",
+      'x-api-key': apiKey
+    };
 
     String url =
         "https://api.premiumpay.site/sync/?install_id=$installIdEncoded&email=$emailEncoded";
@@ -150,37 +168,34 @@ class  _PremiumPayAPI implements PremiumPayAPI {
 
     SyncStatus status = _decode(responseBody["result"].toString());
 
-      int len = responseBody["tokens"].toList().length;
-      for(int i=0; i< len ;i++) {
+    int len = responseBody["tokens"].toList().length;
+    for (int i = 0; i < len; i++) {
+      Token token = TokenImpl._internal(
+          responseBody["tokens"][i]["feature_id"].toString(),
+          responseBody["tokens"][i]["token"].toString());
+      list.add(token);
+    }
 
-        Token token = TokenImpl._internal(responseBody["tokens"][i]["feature_id"].toString(), responseBody["tokens"][i]["token"].toString());
-        list.add(token);
-
-      }
-
-    SyncResult syncResult = SyncResultImpl._internal(status, list, responseBody["permanentLink"]);
+    SyncResult syncResult =
+        SyncResultImpl._internal(status, list, responseBody["permanentLink"]);
     return syncResult;
   }
 
   /// fast local test
   @override
   bool checkTokenValidFormat(String token) {
-
-    if(token.length != 96)
-      return false;
+    if (token.length != 96) return false;
     var signatureToken = base64Decode(token);
     var p = ASN1Parser(signatureToken);
-    try{
+    try {
       //ASN1Object seq1 =
       p.nextObject();
-    }catch(e){
+    } catch (e) {
       return false;
     }
 
     return true;
   }
-
-
 
   @override
   bool verifyReceivedToken(String installId, Token token) {
@@ -189,13 +204,12 @@ class  _PremiumPayAPI implements PremiumPayAPI {
 
   @override
   bool verifyToken(String installId, String featureId, String token) {
-    return _PremiumPayCrypto.tokenVerification(featureId + '@' + installId, token);
+    return _PremiumPayCrypto.tokenVerification(
+        featureId + '@' + installId, token);
   }
-
 }
 
 class _PremiumPayCrypto {
-
   static final pointy.ECCurve_secp256k1 secp256k1 = pointy.ECCurve_secp256k1();
 
   static bool tokenVerification(String msg, String token) {
@@ -210,14 +224,16 @@ class _PremiumPayCrypto {
     List<int> messageBytes = utf8.encode(message);
     var p = ASN1Parser(signatureToken);
     ASN1Sequence seq1 = p.nextObject() as ASN1Sequence;
-    ASN1Integer s1Int =seq1.elements[0]  as ASN1Integer;
+    ASN1Integer s1Int = seq1.elements[0] as ASN1Integer;
     ASN1Integer s2Int = seq1.elements[1] as ASN1Integer;
     var s1IntHex = hex.encode(s1Int.contentBytes() as List<int>);
     var s2IntHex = hex.encode(s2Int.contentBytes() as List<int>);
-    if (((s1Int.contentBytes() as List<int>).length == 33) && s1IntHex.startsWith("00")) {
+    if (((s1Int.contentBytes() as List<int>).length == 33) &&
+        s1IntHex.startsWith("00")) {
       s1IntHex = s1IntHex.substring(2);
     }
-    if (((s2Int.contentBytes() as List<int>).length == 33) && s2IntHex.startsWith("00")) {
+    if (((s2Int.contentBytes() as List<int>).length == 33) &&
+        s2IntHex.startsWith("00")) {
       s2IntHex = s2IntHex.substring(2);
     }
 
@@ -248,5 +264,4 @@ class _PremiumPayCrypto {
     var Q = c.createPoint(x, y);
     return pointy.ECPublicKey(Q, secp256k1);
   }
-
 }
