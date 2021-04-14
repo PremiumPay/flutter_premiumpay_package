@@ -17,7 +17,7 @@ void main() {
   String tokenForFeature_1 = "MEUCIQCnAhiuSmVAUEcqXEsmr2RGtTDE9vmAsPsJCTmRzVqO3QIgBNK/5E6jHq8JMzOsqm0Em0SA1PevlOBai6h/UYkHYTA=";
   String tokenForFeature_2 = "MEUCIHwlVszfmwfH9PzpXz8J8YyXdF/slp/zyWoj5vgy97o8AiEAsrlE7v+B9BDEH9GE2ATx+z077gUKq8TqC8dtW2WthQg=";
 
-  group("test premiupayAPI", () {
+  group("test premiumpayAPI", () {
     test('Create InstallId', () {
       String installId = premiumPayAPI.createInstallId();
       print('InstallId = $installId');
@@ -69,7 +69,7 @@ void main() {
           install, email);
       print('connectResult = $connectResult');
       expect(connectResult.status , ConnectStatus.NEED_TO_VERIFY_EMAIL, reason: "user didn't click on the link in the email received to validate his email address");
-    });
+    }, skip: 'Test depends on development data');
 
     /// connect request with email already verified returns SUCCESSFUL_CONNECT status
     test('Connect Request v3', () async {
@@ -83,7 +83,7 @@ void main() {
           install, email);
       print('connectResult = $connectResult');
       expect(connectResult.status , ConnectStatus.SUCCESSFUL_CONNECT);
-    });
+    }, skip: 'Test depends on development data');
 
     /// sync request with installation not linked to the email account returns INSTALLATION_NOT_LINKED status
     test('Sync Request v1', () async {
@@ -93,7 +93,7 @@ void main() {
       expect(syncResult.status , SyncStatus.INSTALLATION_NOT_LINKED, reason: "didn't previously do connect request of $newInstallId with $email and validate email address");
       expect(syncResult.tokens, isEmpty, reason: 'no feature activated for $newInstallId newly created');
       expect(syncResult.permanentLink , isNull, reason: 'no direct access to website for account not validated');
-    });
+    }, skip: 'Test depends on development data');
 
     /// sync request with install id of installation linked to an account returns INSTALLATION_LINKED status
     test('Sync Request v2', () async {
@@ -106,7 +106,7 @@ void main() {
       expect(syncResult.tokens[1].featureId,featureId_2);
       expect(syncResult.tokens[1].token,tokenForFeature_2);
       expect(syncResult.permanentLink , isNotNull);
-    });
+    }, skip: 'Test depends on development data');
 
     // checkTokenValidFormat returns true on valid format of token
     test('Check Token Valid Format v1', () {

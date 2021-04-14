@@ -47,11 +47,11 @@ class SyncResultImpl  implements SyncResult {
 
   final SyncStatus status;
   final List<Token> tokens;
-  final String permanentLink;
+  final String? permanentLink;
 
   @override
   String toString() {
-    return json.encode({'status': '$status' , 'tokens': '$tokens', 'permanentLink': "$permanentLink"});
+    return json.encode({'status': '$status' , 'tokens': '$tokens', 'permanentLink': permanentLink});
   }
 
   SyncResultImpl._internal(this.status, List<Token> tokens, this.permanentLink): tokens = List.unmodifiable(tokens);
@@ -96,8 +96,9 @@ class  _PremiumPayAPI implements PremiumPayAPI {
   @override
   Future<ConnectResult> connectRequest(Install install, String email, { bool resendEmail = false, bool acceptPromoOffers = false, String lang = 'en', String apiKey = TESTING_AP_KEY}) async {
     String connectUrl = "https://api.premiumpay.site/connect";
-    String jsonBody =
-        '{ "email": "$email", "install_id": "${install.installId}", "application_id":"${install.applicationId}" , "resend_email": $resendEmail , "features": ${install.features}, "accept_promo_offers": "$acceptPromoOffers","from":"application"}';
+    Map jsonBodyMap =
+        { "email": email, "install_id": install.installId, "application_id": install.applicationId, "resend_email": resendEmail , "features": install.features, "accept_promo_offers": "$acceptPromoOffers","from":"application"};
+    String jsonBody =  json.encode(jsonBodyMap);
     Map<String, String> headers = {"Content-type": "application/json", 'x-api-key' : apiKey};
     ConnectStatus status;
     http.Response response =

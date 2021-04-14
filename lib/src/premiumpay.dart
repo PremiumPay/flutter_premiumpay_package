@@ -57,7 +57,7 @@ abstract class SyncResult {
   List<Token> get tokens;
 
   /// link to access directly the website
-  String get permanentLink;
+  String? get permanentLink;
 }
 
 
