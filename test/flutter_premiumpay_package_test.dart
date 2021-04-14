@@ -123,8 +123,12 @@ void main() {
 
     // verifyToken with token suitable to installId and featureId returns true
     test('Verify Token v1', () {
+      String installId = 'a1feb0aa-e33f-4b8a-b9a4-1eff4d18c374';
+      String featureId = "jewishtime#free";
+      String token = 'MEQCIA7aJR2CWm9vD4LjwjbWkaWHqNIM4yafAzwTmOVro/C1AiB6Ahhn/3o5TsiMw+bQEyNCg87ElVDcpRcDCKpv+JwClg==';
+
       bool tokenValid = premiumPayAPI.checkTokenValidFormat(tokenForFeature_1) &&
-          premiumPayAPI.verifyToken(installId, featureId_1, tokenForFeature_1);
+          premiumPayAPI.verifyToken(installId, featureId, token);
       expect(tokenValid , isTrue);
     });
 
