@@ -1,3 +1,8 @@
+## [0.2.2] - release (beta)
+
+* Fix bug on verifyToken
+* Remove pub.dev warnings
+
 ## [0.2.1] - release (beta)
 
 * Improve documentation.
