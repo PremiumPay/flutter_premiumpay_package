@@ -1,3 +1,7 @@
+## [0.2.5] - release (beta)
+
+* Add connect optional parameter connectOnly
+
 ## [0.2.4] - release (beta)
 
 * Fix token verification
