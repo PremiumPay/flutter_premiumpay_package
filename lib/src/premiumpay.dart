@@ -95,6 +95,7 @@ abstract class PremiumPayAPI {
   ///  [acceptPromoOffers] is optional and set to false by default, it's the possibility to receive promotional offers of the vendor's applications by email.
   ///  [lang] is optional and set to english by default, it defines the language to use in website.
   ///  [apiKey] is optional for testing but required for premium usage plan for production (ask PremiumPay Support)
+  ///  [connectOnly] is optional and default to false, when set to true and following the connect link from the email, there is no direct access to features.
 
   /// Returns [ConnectStatus.SUCCESSFUL_CONNECT] in [ConnectResult.status] if the installation has been linked to the account following email validation.
   /// Returns [ConnectStatus.NEED_TO_VERIFY_EMAIL] in [ConnectResult.status] if the user didn't click on the link in the email.
@@ -103,7 +104,8 @@ abstract class PremiumPayAPI {
       {bool resendEmail = false,
       bool acceptPromoOffers = false,
       String lang = 'en',
-      String apiKey});
+      String apiKey,
+      bool connectOnly = false});
 
   /// Request of synchronisation to update the installation activated features.
   ///

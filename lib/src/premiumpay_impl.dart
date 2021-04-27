@@ -95,7 +95,8 @@ class _PremiumPayAPI implements PremiumPayAPI {
       {bool resendEmail = false,
       bool acceptPromoOffers = false,
       String lang = 'en',
-      String apiKey = TESTING_AP_KEY}) async {
+      String apiKey = TESTING_AP_KEY,
+      bool connectOnly = false}) async {
     String connectUrl = "https://api.premiumpay.site/connect";
     Map jsonBodyMap = {
       "email": email,
@@ -106,6 +107,9 @@ class _PremiumPayAPI implements PremiumPayAPI {
       "accept_promo_offers": "$acceptPromoOffers",
       "from": "application"
     };
+    if (connectOnly) {
+      jsonBodyMap['connect_only'] = connectOnly;
+    }
     String jsonBody = json.encode(jsonBodyMap);
     Map<String, String> headers = {
       "Content-type": "application/json",

@@ -10,7 +10,7 @@ Flutter package to help you add premium features in your app using the [PremiumP
 
 1. Add `import 'package:flutter_premiumpay_package/flutter_premiumpay_package.dart';` to your dart code
 
-1. Use the exported variable `premiumPayAPI` and see below API usage summary & Flow and [dart package documentation](https://premiumpay.site/doc/api/index.html).
+1. Use the exported variable `premiumPayAPI` and see below API usage summary & Flow and dart documentation in [api/doc/](api/doc/)
 
 
 ## API usage summary & Flow
@@ -34,7 +34,7 @@ Enjoy!
 For any question, you can ask the [support team](mailto:support@premiumpay.site).
 
 
-## Generate api/doc yourself on a cloned repository
+## Generate api/doc on your cloned repository
 
 1. Install dartdoc using command `pub global activate dartdoc`.
 2. Run command `flutter pub global run dartdoc:dartdoc` from the root of your cloned repository.
